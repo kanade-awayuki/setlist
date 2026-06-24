@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>淡雪花奏 歌える曲リスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#fbf8fc; --bg-1:#f3eefa;
+    --surface:#ffffff; --surface-2:#f6f1fc;
+    --border:#e3dbf2; --border-soft:#ece5f7;
+    --text:#332d45; --text-dim:#6f6685; --text-faint:#948c9e;
+    --accent:#ff9db7; --accent-deep:#ff7ca0; --accent-2:#9b8cff;
+    --accent-text:#c93d70; --accent2-text:#6c4fe0; --ok-text:#178a68;
+    --shadow-sm:0 4px 14px rgba(155,140,190,.18);
+    --radius-lg:20px; --radius-md:14px; --radius-sm:9px;
+    --font-display:'Dela Gothic One',sans-serif;
+    --font-card:'Zen Maru Gothic',sans-serif;
+    --font-body:'Zen Kaku Gothic New',sans-serif;
+    --font-led:'DotGothic16',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    color:var(--text); font-family:var(--font-body); line-height:1.5;
+    padding:36px 18px 60px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* --- ヘッダー --- */
+  header.top{display:flex;align-items:center;gap:16px;margin-bottom:26px;flex-wrap:wrap;}
+  .mic-badge{
+    flex:0 0 auto;width:50px;height:50px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:23px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 4px rgba(255,157,183,.16), 0 0 24px rgba(255,157,183,.40);
+    overflow:hidden;
+  }
+  .mic-badge img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .title-block h1{
+    font-family:var(--font-display);font-weight:400;font-size:22px;letter-spacing:.06em;margin:0 0 2px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title-block p{margin:0;font-size:12.5px;color:var(--text-dim);}
+  .readonly-tag{
+    margin-left:auto;font-family:var(--font-led);font-size:11.5px;letter-spacing:.1em;
+    color:var(--accent2-text);border:1px solid rgba(155,140,255,.40);background:rgba(155,140,255,.10);
+    padding:6px 12px;border-radius:999px;white-space:nowrap;
+  }
+
+  /* --- パネル --- */
+  .panel{
+    background:linear-gradient(180deg,var(--surface),var(--bg-1));
+    border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow-sm);
+  }
+
+  /* --- ツールバー --- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+  .field-sm{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text-faint);flex:1 1 150px;}
+  input[type=search], select{
+    font-family:var(--font-body);background:var(--bg-1);border:1px solid var(--border);
+    color:var(--text);border-radius:var(--radius-sm);padding:9px 11px;font-size:13.5px;
+    outline:none;width:100%;transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,157,183,.22);}
+  button{font-family:var(--font-body);cursor:pointer;}
+  .reverse-toggle{
+    display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);padding:9px 14px;font-size:12.5px;color:var(--text-dim);flex:0 0 auto;
+  }
+  .reverse-toggle[aria-pressed="true"]{border-color:var(--accent-2);color:var(--accent2-text);background:rgba(155,140,255,.10);}
+  .refresh-btn{
+    display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--text-dim);padding:9px 14px;font-size:12.5px;flex:0 0 auto;
+  }
+  .refresh-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  svg.icon{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* --- 曲カード --- */
+  #list{display:flex;flex-direction:column;gap:11px;}
+  .song-card{
+    display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border-soft);
+    border-radius:var(--radius-md);padding:11px 14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  }
+  .song-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--accent),var(--accent-2));}
+  .track-no{
+    flex:0 0 auto;width:32px;height:32px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-led);font-size:12px;color:var(--text);
+    background:linear-gradient(160deg,var(--accent),var(--accent-deep));
+  }
+  .song-body{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .name-group{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .song-title{font-family:var(--font-card);font-size:15px;font-weight:500;word-break:break-word;}
+  .milishiri-tag{font-family:var(--font-body);font-size:11.5px;color:var(--accent-text);font-weight:400;white-space:nowrap;}
+  .sep{color:var(--text-faint);font-size:13px;}
+  .song-artist-inline{font-size:13px;color:var(--accent2-text);word-break:break-word;}
+  .meta-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .badge-work{font-size:10.5px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;white-space:nowrap;}
+  .notes-text{font-size:11px;color:var(--text-dim);font-style:italic;word-break:break-word;width:100%;}
+
+  /* --- コピーボタン --- */
+  .copy-btns{display:flex;gap:5px;flex:0 0 auto;align-items:center;}
+  .icon-btn{
+    width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);flex:0 0 auto;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  .icon-btn.copied{border-color:#6fd9b0;color:var(--ok-text);}
+  .copy-both{
+    display:inline-flex;align-items:center;gap:4px;border-radius:999px;
+    background:rgba(155,140,255,.10);border:1px solid rgba(155,140,255,.30);color:var(--accent2-text);
+    padding:4px 10px;font-size:11px;font-family:var(--font-body);white-space:nowrap;flex:0 0 auto;
+  }
+  .copy-both:hover{border-color:var(--accent-2);background:rgba(155,140,255,.18);}
+  .copy-both.copied{border-color:#6fd9b0;color:var(--ok-text);background:rgba(111,217,176,.12);}
+
+  /* --- 空・ローディング --- */
+  .empty{text-align:center;padding:46px 18px;color:var(--text-dim);border:1px dashed var(--border);border-radius:var(--radius-md);}
+  .empty .big{font-family:var(--font-card);font-size:17px;color:var(--text-dim);margin-bottom:6px;}
+  .loading{text-align:center;padding:40px;color:var(--text-faint);font-family:var(--font-led);font-size:13px;letter-spacing:.08em;}
+  .error-msg{
+    background:rgba(255,122,144,.08);border:1px solid rgba(255,122,144,.3);
+    color:#d43b58;border-radius:var(--radius-md);padding:14px 16px;font-size:13px;margin-bottom:12px;display:none;
+  }
+
+  /* --- トースト --- */
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:10px 16px;border-radius:999px;font-size:12.5px;box-shadow:0 12px 30px rgba(155,140,190,.25);
+    opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.ok{border-color:#6fd9b0;color:var(--ok-text);}
+
+  footer.foot{text-align:center;color:var(--text-faint);font-size:11px;margin-top:24px;}
+  footer.foot .led{font-family:var(--font-led);color:var(--accent-text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mic-badge" id="site-icon">🎤</div>
+    <div class="title-block">
+      <h1>淡雪花奏 歌える曲リスト</h1>
+      <p>閲覧専用</p>
+    </div>
+    <div class="readonly-tag">👁 VIEW ONLY</div>
+  </header>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <section class="panel">
+    <div class="toolbar">
+      <div class="field-sm" style="flex:2 1 200px;">検索
+        <input type="search" id="search" placeholder="曲名・歌手・作品名で検索">
+      </div>
+      <div class="field-sm">並び替え対象
+        <select id="sort-field">
+          <option value="title">曲名</option>
+          <option value="artist">歌手</option>
+        </select>
+      </div>
+      <div class="field-sm">並び順
+        <select id="sort-mode">
+          <option value="none">登録順</option>
+          <option value="alpha">A→Z（曲名・歌手名）</option>
+          <option value="kana">あ→ん（歌手読み専用）</option>
+        </select>
+      </div>
+      <button type="button" id="reverse-btn" class="reverse-toggle" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M7 16V4M7 4 3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+        逆順
+      </button>
+      <button type="button" id="refresh-btn" class="refresh-btn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+        更新
+      </button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div id="list"><div class="loading">LOADING...</div></div>
+  </section>
+
+  <footer class="foot">
+    <span class="led">最終更新: <span id="updated-at">-</span></span><br>
+    60秒ごとに自動更新されます
+  </footer>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ▼▼▼ ここにApps ScriptのデプロイURLを貼り付けてください ▼▼▼
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+  // ▼▼▼ タイトル横のアイコンを変更できます ▼▼▼
+  //
+  // 【絵文字候補】 好きな1つをそのままコピーして貼り付けてください
+  //   🎤 マイク（デフォルト）
+  //   🎵 音符
+  //   🎶 音符2
+  //   🌸 桜
+  //   🌙 月
+  //   ⭐ 星
+  //   🎀 リボン
+  //   🦋 蝶
+  //   🌸 花
+  //   💫 きらきら
+  //
+  // 【画像を使う場合】 画像のURLを ICON_IMAGE_URL に貼り付けてください
+  //   例: 'https://example.com/myicon.png'
+  //   GitHubリポジトリに画像ファイルを置いた場合は相対パスでもOK
+  //   例: './icon.png'
+  //   画像を使う場合は ICON_EMOJI を '' (空) にしてください
+  //
+  const ICON_EMOJI     = '';   // ← 絵文字アイコン（画像使用時は '' に）
+  const ICON_IMAGE_URL = 'https://lh3.googleusercontent.com/d/1fJZfFFGBKh_XOsBVh3jT7N2U1-wr603E';     // ← 画像URL（絵文字使用時は '' のまま）
+  // ============================================
+
+  // アイコンを描画
+  const siteIcon = document.getElementById('site-icon');
+  if (ICON_IMAGE_URL) {
+    const img = document.createElement('img');
+    img.src = ICON_IMAGE_URL;
+    img.alt = 'アイコン';
+    siteIcon.textContent = '';
+    siteIcon.appendChild(img);
+  } else if (ICON_EMOJI) {
+    siteIcon.textContent = ICON_EMOJI;
+  }
+
+  const ICONS = {
+    copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
+  };
+
+  let songs = [];
+  let reverse = false;
+
+  const el = {
+    list: document.getElementById('list'),
+    search: document.getElementById('search'),
+    sortField: document.getElementById('sort-field'),
+    sortMode: document.getElementById('sort-mode'),
+    reverseBtn: document.getElementById('reverse-btn'),
+    refreshBtn: document.getElementById('refresh-btn'),
+    updatedAt: document.getElementById('updated-at'),
+    errorMsg: document.getElementById('error-msg'),
+    toast: document.getElementById('toast')
+  };
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function showToast(msg, type){
+    el.toast.textContent = msg;
+    el.toast.className = 'show' + (type ? ' ' + type : '');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { el.toast.className = ''; }, 2000);
+  }
+
+  async function copyText(text, label){
+    try{
+      if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+      else { const ta = document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+      showToast((label||'コピー') + 'をコピーしました', 'ok');
+    } catch(e){ showToast('コピーに失敗しました'); }
+  }
+
+  function compareSongs(a, b, field, mode){
+    // 五十音ソートは歌手読みを優先、なければ歌手名にフォールバック
+    const av = mode==='kana' && field==='artist' ? (a.artistKana||a.artist||'') : (a[field]||'');
+    const bv = mode==='kana' && field==='artist' ? (b.artistKana||b.artist||'') : (b[field]||'');
+    if (mode==='kana') return av.localeCompare(bv, 'ja');
+    if (mode==='alpha') return av.localeCompare(bv, 'en', {sensitivity:'base', numeric:true});
+    return 0;
+  }
+
+  function getVisibleSongs(){
+    const q = el.search.value.trim().toLowerCase();
+    let list = songs.slice();
+    if (q) list = list.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q) || (s.work||'').toLowerCase().includes(q) || (s.notes||'').toLowerCase().includes(q));
+    const field = el.sortField.value, mode = el.sortMode.value;
+    if (mode !== 'none') list.sort((a,b) => compareSongs(a,b,field,mode));
+    if (reverse) list.reverse();
+    return list;
+  }
+
+  function songCard(song, index){
+    const no = String(index+1).padStart(2,'0');
+    const hasArtist = !!song.artist;
+    const SVG = '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+    return `
+    <div class="song-card">
+      <div class="track-no">${no}</div>
+      <div class="song-body">
+        <div class="name-group">
+          <span class="song-title">${esc(song.title)||'(無題)'}${song.milishiri?'<span class="milishiri-tag">（ミリしり）</span>':''}</span>
+          <button class="icon-btn" data-copy="title" data-i="${index}" title="曲名をコピー">${SVG}</button>
+          ${hasArtist ? `<span class="sep">/</span><span class="song-artist-inline">${esc(song.artist)}</span><button class="icon-btn" data-copy="artist" data-i="${index}" title="歌手名をコピー">${SVG}</button>` : ''}
+          ${hasArtist ? `<button class="copy-both" data-copy="both" data-i="${index}" title="曲名・歌手名をまとめてコピー">${SVG}両方コピー</button>` : ''}
+          <div class="meta-badges">
+            ${song.work ? `<span class="badge-work">📀 ${esc(song.work)}</span>` : ''}
+          </div>
+        </div>
+        ${song.notes ? `<div class="notes-text">💬 ${esc(song.notes)}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  function render(){
+    const visible = getVisibleSongs();
+    if (songs.length === 0){
+      el.list.innerHTML = `<div class="empty"><div class="big">曲が登録されていません</div></div>`;
+      return;
+    }
+    if (visible.length === 0){
+      el.list.innerHTML = `<div class="empty"><div class="big">該当する曲が見つかりません</div></div>`;
+      return;
+    }
+    el.list.innerHTML = visible.map((s,i) => songCard(s,i)).join('');
+  }
+
+  async function fetchSongs(silent){
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?mode=json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      songs = data.songs || [];
+      el.updatedAt.textContent = data.updatedAt || new Date().toLocaleString('ja-JP');
+      el.errorMsg.style.display = 'none';
+      render();
+      if (!silent) showToast('最新の情報に更新しました', 'ok');
+    } catch(err){
+      el.errorMsg.style.display = 'block';
+      el.errorMsg.textContent = 'データの読み込みに失敗しました。Apps ScriptのURLが正しく設定されているか確認してください。';
+      if (songs.length === 0) el.list.innerHTML = `<div class="empty"><div class="big">読み込みエラー</div><div>ページを更新してください</div></div>`;
+    }
+  }
+
+  el.list.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-copy]');
+    if (!btn) return;
+    const visible = getVisibleSongs();
+    const song = visible[Number(btn.dataset.i)];
+    if (!song) return;
+    if (btn.dataset.copy === 'title') copyText(song.title, '曲名');
+    else if (btn.dataset.copy === 'artist') copyText(song.artist, '歌手名');
+    else if (btn.dataset.copy === 'both') copyText(`${song.title} / ${song.artist}`, '曲名・歌手名');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1100);
+  });
+
+  el.search.addEventListener('input', render);
+  el.sortField.addEventListener('change', render);
+  el.sortMode.addEventListener('change', render);
+  el.reverseBtn.addEventListener('click', () => {
+    reverse = !reverse;
+    el.reverseBtn.setAttribute('aria-pressed', String(reverse));
+    render();
+  });
+  el.refreshBtn.addEventListener('click', () => fetchSongs(false));
+  setInterval(() => fetchSongs(true), 60000);
+
+  fetchSongs(true);
+})();
+</script>
+</body>
+</html>

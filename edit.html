@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTAWAKU SETLIST | 編集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Antique+B1&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#fbf8fc; --bg-1:#f3eefa;
+    --surface:#ffffff; --surface-2:#f6f1fc;
+    --border:#e3dbf2; --border-soft:#ece5f7;
+    --text:#332d45; --text-dim:#6f6685; --text-faint:#948c9e;
+    --accent:#ff9db7; --accent-deep:#ff7ca0; --accent-2:#9b8cff;
+    --accent-text:#c93d70; --accent2-text:#6c4fe0;
+    --ok:#6fd9b0; --ok-text:#178a68;
+    --danger:#ff7a90; --danger-text:#d43b58;
+    --shadow-sm:0 4px 14px rgba(155,140,190,.18);
+    --shadow-lg:0 20px 50px rgba(155,140,190,.28);
+    --radius-lg:20px; --radius-md:14px; --radius-sm:9px;
+    --font-display:'Shippori Antique B1','Zen Kaku Gothic New',sans-serif;
+    --font-body:'Zen Kaku Gothic New',sans-serif;
+    --font-led:'DotGothic16',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    color:var(--text); font-family:var(--font-body); line-height:1.5;
+    padding:36px 18px 70px;
+  }
+  .wrap{max-width:880px;margin:0 auto;}
+
+  /* ===== ログイン画面 ===== */
+  #login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    position:fixed;inset:0;background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    z-index:100;
+  }
+  .login-box{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:40px 36px;width:100%;max-width:360px;box-shadow:var(--shadow-lg);text-align:center;
+  }
+  .login-mic{
+    width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:26px;margin:0 auto 18px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 4px rgba(255,157,183,.16), 0 0 24px rgba(255,157,183,.40);
+  }
+  .login-box h1{
+    font-family:var(--font-display);font-weight:400;font-size:22px;margin:0 0 4px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .login-box p{font-size:12.5px;color:var(--text-dim);margin:0 0 24px;}
+  .login-box input[type=password]{
+    font-family:var(--font-body);background:var(--bg-1);border:1px solid var(--border);
+    color:var(--text);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;
+    outline:none;width:100%;margin-bottom:12px;letter-spacing:.1em;text-align:center;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .login-box input[type=password]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,157,183,.22);}
+  .login-box input[type=password]::placeholder{letter-spacing:normal;color:var(--text-faint);}
+  .login-err{font-size:12.5px;color:var(--danger-text);margin:-4px 0 10px;min-height:18px;}
+
+  /* ===== 共通 ===== */
+  header.top{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .mic-badge{
+    flex:0 0 auto;width:50px;height:50px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:23px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 4px rgba(255,157,183,.16), 0 0 24px rgba(255,157,183,.40);
+  }
+  .title-block h1{
+    font-family:var(--font-display);font-weight:400;font-size:26px;letter-spacing:.04em;margin:0 0 2px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title-block p{margin:0;font-size:12.5px;color:var(--text-dim);}
+  .edit-tag{
+    margin-left:auto;font-family:var(--font-led);font-size:11.5px;letter-spacing:.1em;
+    color:var(--accent-text);border:1px solid rgba(255,157,183,.4);background:rgba(255,157,183,.08);
+    padding:6px 12px;border-radius:999px;white-space:nowrap;
+  }
+  .logout-btn{
+    font-family:var(--font-body);font-size:12px;color:var(--text-faint);
+    background:transparent;border:1px solid var(--border);border-radius:999px;padding:6px 12px;cursor:pointer;
+  }
+  .logout-btn:hover{border-color:var(--danger);color:var(--danger-text);}
+
+  .notice{
+    display:flex;gap:10px;align-items:flex-start;
+    background:rgba(155,140,255,.10);border:1px solid rgba(155,140,255,.40);
+    color:var(--text);border-radius:var(--radius-md);padding:12px 14px;font-size:12.5px;margin-bottom:16px;
+  }
+  .notice.warn{background:rgba(255,157,183,.08);border-color:rgba(255,157,183,.35);}
+
+  .panel{
+    background:linear-gradient(180deg,var(--surface),var(--bg-1));
+    border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:20px 22px;margin-bottom:18px;box-shadow:var(--shadow-sm);
+  }
+  .panel h2{
+    font-size:12.5px;font-family:var(--font-led);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-text);margin:0 0 14px;display:flex;align-items:center;gap:8px;
+  }
+  .panel h2 .num{color:var(--text-faint);}
+  .panel h2 .right{margin-left:auto;display:flex;gap:8px;}
+
+  .field-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:10px;}
+  @media(max-width:720px){.field-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:480px){.field-grid{grid-template-columns:1fr;}}
+  label.fl{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text-faint);}
+  label.fl span.req::after{content:' *';color:var(--accent-2);}
+  input[type=text], input[type=search], select{
+    font-family:var(--font-body);background:var(--bg-1);border:1px solid var(--border);
+    color:var(--text);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;
+    outline:none;width:100%;transition:border-color .15s, box-shadow .15s;
+  }
+  input::placeholder{color:var(--text-faint);}
+  input:focus, select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,157,183,.22);}
+  .form-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+
+  button{font-family:var(--font-body);cursor:pointer;}
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--text);padding:9px 16px;font-size:13.5px;font-weight:500;
+    transition:transform .12s, border-color .15s;
+  }
+  .btn:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .btn.primary{background:linear-gradient(95deg,var(--accent),var(--accent-deep));color:var(--text);border-color:transparent;font-weight:700;}
+  .btn.primary:hover{filter:brightness(1.07);}
+  .btn.ghost{background:transparent;}
+  .btn.sm{padding:6px 11px;font-size:12.5px;}
+  .btn.danger-ghost{background:transparent;border-color:var(--border);color:var(--text-faint);font-size:12px;padding:6px 12px;}
+  .btn.danger-ghost:hover{border-color:var(--danger);color:var(--danger-text);}
+  svg.icon{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .icon-btn{
+    width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);flex:0 0 auto;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  .icon-btn.copied{border-color:var(--ok);color:var(--ok-text);}
+  .icon-btn.selected{background:rgba(255,157,183,.16);border-color:rgba(255,157,183,.55);color:var(--accent-text);}
+  .icon-btn.danger:hover{border-color:var(--danger);color:var(--danger-text);}
+
+  /* ミリしり */
+  .check-label{
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-dim);
+    padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);user-select:none;
+  }
+  .check-label:hover{border-color:var(--accent);color:var(--text);}
+  .check-label input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto;}
+  .check-label.on{border-color:var(--accent);background:rgba(255,157,183,.10);color:var(--accent-text);font-weight:600;}
+  .badge-milishiri{font-size:11.5px;color:var(--accent-text);background:rgba(255,157,183,.15);border:1px solid rgba(255,157,183,.4);border-radius:999px;padding:2px 9px;}
+  .e-check-label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text-dim);}
+  .e-check-label input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+
+  /* ツールバー */
+  .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;}
+  .field-sm{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text-faint);}
+  .search-wrap{flex:1 1 220px;}
+  .reverse-toggle{
+    display:inline-flex;align-items:center;gap:7px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);padding:9px 14px;font-size:13px;color:var(--text-dim);
+  }
+  .reverse-toggle[aria-pressed="true"]{border-color:var(--accent-2);color:var(--accent2-text);background:rgba(155,140,255,.10);}
+  .count-led{font-family:var(--font-led);font-size:12px;color:var(--accent-text);letter-spacing:.08em;}
+
+  /* セットリスト */
+  .setlist-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;}
+  .setlist-empty{color:var(--text-faint);font-size:12.5px;padding:6px 2px;}
+  .setlist-item{display:flex;align-items:center;gap:9px;background:var(--bg-1);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;}
+  .setlist-item .no{font-family:var(--font-led);font-size:11px;color:var(--accent-text);flex:0 0 auto;min-width:18px;}
+  .setlist-item .label{flex:1 1 auto;word-break:break-word;}
+  .setlist-item .label .a{color:var(--accent2-text);}
+  .setlist-item .remove{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--text-faint);}
+  .setlist-item .remove svg.icon{width:11px;height:11px;}
+  .setlist-item .remove:hover{border-color:var(--danger);color:var(--danger-text);}
+
+  /* 曲カード */
+  #list{display:flex;flex-direction:column;gap:12px;}
+  .song-card{display:flex;gap:14px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+  .song-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--accent),var(--accent-2));}
+  .track-no{flex:0 0 auto;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-led);font-size:14px;color:var(--text);background:linear-gradient(160deg,var(--accent),var(--accent-deep));margin-top:2px;}
+  .song-body{flex:1 1 auto;min-width:0;}
+  .song-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .song-title{font-family:var(--font-display);font-size:18px;word-break:break-word;}
+  .song-artist{font-size:13.5px;color:var(--accent2-text);display:flex;align-items:center;gap:5px;margin-top:4px;word-break:break-word;}
+  .meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .badge-work{font-size:11.5px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:3px 10px;}
+  .notes-text{font-size:12.5px;color:var(--text-faint);margin-top:7px;font-style:italic;word-break:break-word;}
+  .song-actions{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+  .song-actions .row{display:flex;gap:6px;}
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  @media(max-width:520px){.edit-grid{grid-template-columns:1fr;}}
+  .edit-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;}
+
+  /* インポート */
+  .import-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border);}
+  .import-tab{padding:8px 16px;font-size:13px;font-family:var(--font-body);color:var(--text-dim);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+  .import-tab[aria-selected="true"]{color:var(--accent-text);border-bottom-color:var(--accent);}
+  .import-pane{display:none;}
+  .import-pane.active{display:block;}
+  .file-drop{border:2px dashed var(--border);border-radius:var(--radius-md);padding:28px 18px;text-align:center;cursor:pointer;color:var(--text-dim);font-size:13px;transition:border-color .15s,background .15s;}
+  .file-drop:hover,.file-drop.drag-over{border-color:var(--accent);background:rgba(255,157,183,.06);}
+  .file-drop .big{font-size:26px;margin-bottom:6px;}
+  .file-drop p{margin:4px 0 0;font-size:12px;color:var(--text-faint);}
+  input[type=file]{display:none;}
+  textarea.bulk{font-family:var(--font-body);background:var(--bg-1);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:12px 14px;font-size:13.5px;outline:none;width:100%;min-height:140px;resize:vertical;transition:border-color .15s, box-shadow .15s;}
+  textarea.bulk::placeholder{color:var(--text-faint);}
+  textarea.bulk:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,157,183,.22);}
+  .import-hint{font-size:12px;color:var(--text-faint);margin:8px 0 12px;line-height:1.6;}
+  .import-hint code{font-family:var(--font-led);font-size:11.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--text-dim);}
+  .preview-wrap{margin-top:14px;}
+  .preview-wrap h3{font-size:11.5px;font-family:var(--font-led);color:var(--text-faint);letter-spacing:.08em;margin:0 0 8px;}
+  .preview-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;}
+  .preview-item{display:flex;align-items:center;gap:8px;background:var(--bg-1);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:6px 10px;font-size:12.5px;}
+  .preview-item .p-no{font-family:var(--font-led);font-size:10.5px;color:var(--text-faint);flex:0 0 20px;}
+  .preview-item .p-title{flex:1 1 auto;font-weight:500;}
+  .preview-item .p-artist{color:var(--accent2-text);font-size:12px;}
+  .preview-item .p-err{color:var(--danger-text);font-size:11.5px;font-style:italic;}
+  .import-actions{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;}
+  .import-ok-count{font-size:12.5px;color:var(--ok-text);font-family:var(--font-led);}
+  .import-err-count{font-size:12.5px;color:var(--danger-text);font-family:var(--font-led);}
+
+  /* 空・ローディング */
+  .empty{text-align:center;padding:50px 20px;color:var(--text-dim);border:1px dashed var(--border);border-radius:var(--radius-md);}
+  .empty .big{font-family:var(--font-display);font-size:20px;color:var(--text-dim);margin-bottom:6px;}
+  .loading{text-align:center;padding:40px;color:var(--text-faint);font-family:var(--font-led);font-size:13px;letter-spacing:.08em;}
+
+  /* トースト */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:11px 18px;border-radius:999px;font-size:13px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:200;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.ok{border-color:var(--ok);color:var(--ok-text);}
+  #toast.err{border-color:var(--danger);color:var(--danger-text);}
+
+  footer.foot{text-align:center;color:var(--text-faint);font-size:11.5px;margin-top:26px;}
+  footer.foot .led{font-family:var(--font-led);color:var(--accent-text);}
+</style>
+</head>
+<body>
+
+<!-- ===== ログイン画面 ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-mic">🎤</div>
+    <h1>UTAWAKU SETLIST</h1>
+    <p>編集ページ — パスワードを入力</p>
+    <input type="password" id="pw-input" placeholder="パスワード" autocomplete="current-password">
+    <div class="login-err" id="login-err"></div>
+    <button class="btn primary" id="login-btn" style="width:100%;justify-content:center;">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      ログイン
+    </button>
+  </div>
+</div>
+
+<!-- ===== 編集画面 ===== -->
+<div class="wrap" id="main-screen" style="display:none;">
+
+  <header class="top">
+    <div class="mic-badge">🎤</div>
+    <div class="title-block">
+      <h1>UTAWAKU SETLIST</h1>
+      <p>編集ページ（追加・編集・削除）</p>
+    </div>
+    <div class="edit-tag">🔒 EDIT MODE</div>
+    <button type="button" class="logout-btn" id="logout-btn">ログアウト</button>
+  </header>
+
+  <div class="notice warn" id="missing-cols-notice" style="display:none;"></div>
+
+  <!-- 01 曲を1件追加 -->
+  <section class="panel">
+    <h2><span class="num">01</span> 曲を1件追加</h2>
+    <form id="add-form">
+      <div class="field-grid" style="grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;">
+        <label class="fl"><span class="req">曲名</span><input type="text" id="f-title" placeholder="例: 紅蓮華" required maxlength="120"></label>
+        <label class="fl">歌手<input type="text" id="f-artist" placeholder="例: LiSA" maxlength="80"></label>
+        <label class="fl">歌手読み<input type="text" id="f-artist-kana" placeholder="例: りさ" maxlength="80"></label>
+        <label class="fl">作品名<input type="text" id="f-work" placeholder="例: 鬼滅の刃" maxlength="80"></label>
+        <label class="fl">備考<input type="text" id="f-notes" placeholder="キー -2 など" maxlength="120"></label>
+      </div>
+      <div class="form-actions">
+        <label class="check-label" id="f-milishiri-label">
+          <input type="checkbox" id="f-milishiri">ミリしり
+        </label>
+        <button type="submit" class="btn primary" id="add-submit-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          リストに追加
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 02 一括インポート -->
+  <section class="panel">
+    <h2><span class="num">02</span> 一括インポート</h2>
+    <div class="import-tabs" role="tablist">
+      <button type="button" class="import-tab" id="tab-bulk" role="tab" aria-selected="true" aria-controls="pane-bulk">テキスト一括登録</button>
+      <button type="button" class="import-tab" id="tab-csv"  role="tab" aria-selected="false" aria-controls="pane-csv">CSV読み込み</button>
+    </div>
+    <div class="import-pane active" id="pane-bulk">
+      <p class="import-hint">1行に1曲、<code>曲名/アーティスト名</code> の形式で貼り付けてください。区切りは <code>/</code> <code>｜</code> <code>、</code> <code>,</code> タブどれでもOK。アーティスト名は省略可。</p>
+      <textarea class="bulk" id="bulk-input" placeholder="紅蓮華/LiSA&#10;炎/LiSA&#10;夜に駆ける/YOASOBI"></textarea>
+      <div id="bulk-preview" class="preview-wrap" style="display:none;"></div>
+      <div class="import-actions">
+        <button type="button" id="bulk-parse-btn" class="btn">プレビュー</button>
+        <button type="button" id="bulk-import-btn" class="btn primary" disabled>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>一括登録
+        </button>
+        <span id="bulk-ok-count" class="import-ok-count" style="display:none;"></span>
+        <span id="bulk-err-count" class="import-err-count" style="display:none;"></span>
+      </div>
+    </div>
+    <div class="import-pane" id="pane-csv">
+      <p class="import-hint">CSVまたはTSVファイルを選択（またはドロップ）してください。</p>
+      <label class="file-drop" id="csv-drop-zone" for="csv-file-input">
+        <div class="big">📂</div>クリックまたはドラッグ&ドロップ<p>対応: .csv / .tsv / .txt</p>
+      </label>
+      <input type="file" id="csv-file-input" accept=".csv,.tsv,.txt">
+      <div id="csv-preview" class="preview-wrap" style="display:none;"></div>
+      <div class="import-actions">
+        <button type="button" id="csv-import-btn" class="btn primary" disabled>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>インポート
+        </button>
+        <span id="csv-ok-count" class="import-ok-count" style="display:none;"></span>
+        <span id="csv-err-count" class="import-err-count" style="display:none;"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 検索 -->
+  <section class="panel">
+    <h2><span class="num">03</span> 検索・並び替え</h2>
+    <div class="toolbar">
+      <div class="field-sm search-wrap">検索<input type="search" id="search" placeholder="曲名・歌手・作品名で検索"></div>
+      <div class="field-sm">並び替え対象<select id="sort-field"><option value="title">曲名</option><option value="artist">歌手</option></select></div>
+      <div class="field-sm">並び順<select id="sort-mode"><option value="none">登録順</option><option value="alpha">A→Z（曲名・歌手名）</option><option value="kana">あ→ん（歌手読み専用）</option></select></div>
+      <button type="button" id="reverse-btn" class="reverse-toggle" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M7 16V4M7 4 3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>逆順
+      </button>
+    </div>
+  </section>
+
+  <!-- 04 セットリスト -->
+  <section class="panel">
+    <h2>
+      <span class="num">04</span> 本日歌った曲リスト <span class="count-led" id="setlist-count">0曲</span>
+      <span class="right">
+        <button type="button" id="setlist-copy" class="btn sm primary" disabled>
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>まとめてコピー
+        </button>
+        <button type="button" id="setlist-clear" class="btn sm danger-ghost" disabled>クリア</button>
+      </span>
+    </h2>
+    <ol class="setlist-items" id="setlist-items">
+      <li class="setlist-empty">下のリストから歌った曲を選ぶと、ここに追加されます</li>
+    </ol>
+  </section>
+
+  <!-- 05 ソングリスト -->
+  <section class="panel">
+    <h2>
+      <span class="num">05</span> ソングリスト <span class="count-led" id="count-text"></span>
+      <span class="right">
+        <button type="button" id="export-csv" class="btn sm">CSVバックアップ</button>
+        <button type="button" id="refresh-btn" class="btn sm">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>更新
+        </button>
+      </span>
+    </h2>
+    <div id="list"><div class="loading">LOADING...</div></div>
+  </section>
+
+  <div style="text-align:center;">
+    <button type="button" id="clear-all" class="btn danger-ghost">すべての曲を削除</button>
+  </div>
+
+  <footer class="foot">
+    <span class="led">最終更新: <span id="updated-at">-</span></span>
+  </footer>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ▼▼▼ ここにApps ScriptのデプロイURLを貼り付けてください ▼▼▼
+  const API_URL = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+  const STORAGE_KEY = 'utawaku_pw';
+  const ICONS = {
+    copy:  '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+    edit:  '<svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+    trash: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    save:  '<svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>',
+    close: '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    plus:  '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    check: '<svg class="icon" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>',
+    x:     '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>'
+  };
+
+  let songs = [], pw = '', editingRow = null, reverse = false, busy = false, selectedRows = [];
+
+  const el = {
+    loginScreen:    document.getElementById('login-screen'),
+    mainScreen:     document.getElementById('main-screen'),
+    pwInput:        document.getElementById('pw-input'),
+    loginBtn:       document.getElementById('login-btn'),
+    loginErr:       document.getElementById('login-err'),
+    logoutBtn:      document.getElementById('logout-btn'),
+    list:           document.getElementById('list'),
+    addForm:        document.getElementById('add-form'),
+    addSubmitBtn:   document.getElementById('add-submit-btn'),
+    fTitle:         document.getElementById('f-title'),
+    fArtist:        document.getElementById('f-artist'),
+    fArtistKana:    document.getElementById('f-artist-kana'),
+    fWork:          document.getElementById('f-work'),
+    fNotes:         document.getElementById('f-notes'),
+    fMilishiri:     document.getElementById('f-milishiri'),
+    fMilishiriLabel:document.getElementById('f-milishiri-label'),
+    search:         document.getElementById('search'),
+    sortField:      document.getElementById('sort-field'),
+    sortMode:       document.getElementById('sort-mode'),
+    reverseBtn:     document.getElementById('reverse-btn'),
+    countText:      document.getElementById('count-text'),
+    exportCsv:      document.getElementById('export-csv'),
+    refreshBtn:     document.getElementById('refresh-btn'),
+    clearAll:       document.getElementById('clear-all'),
+    updatedAt:      document.getElementById('updated-at'),
+    missingNotice:  document.getElementById('missing-cols-notice'),
+    toast:          document.getElementById('toast'),
+    setlistCount:   document.getElementById('setlist-count'),
+    setlistItems:   document.getElementById('setlist-items'),
+    setlistCopyBtn: document.getElementById('setlist-copy'),
+    setlistClearBtn:document.getElementById('setlist-clear')
+  };
+
+  /* ===== ユーティリティ ===== */
+  function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function showToast(msg, type){
+    el.toast.textContent = msg;
+    el.toast.className = 'show' + (type ? ' '+type : '');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>{ el.toast.className=''; }, 2400);
+  }
+
+  async function copyText(text, label){
+    try{
+      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else{ const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t); }
+      showToast((label||'コピー')+'をコピーしました','ok');
+    }catch{ showToast('コピーに失敗しました','err'); }
+  }
+
+  function setBusy(v){ busy=v; el.addSubmitBtn.disabled=v; }
+
+  /* ===== API ===== */
+  async function api(params){
+    const url = new URL(API_URL);
+    url.searchParams.set('mode','api');
+    url.searchParams.set('key', pw);
+    for(const [k,v] of Object.entries(params)) url.searchParams.set(k, typeof v==='object' ? JSON.stringify(v) : String(v));
+    const res = await fetch(url.toString(), { cache:'no-store' });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || '不明なエラー');
+    return data;
+  }
+
+  /* ===== ログイン ===== */
+  async function login(){
+    const p = el.pwInput.value;
+    if(!p){ el.loginErr.textContent='パスワードを入力してください'; return; }
+    el.loginBtn.disabled = true;
+    el.loginErr.textContent = '確認中…';
+    try{
+      pw = p;
+      await api({ action:'verifyPassword' });
+      sessionStorage.setItem(STORAGE_KEY, p);
+      el.loginScreen.style.display = 'none';
+      el.mainScreen.style.display = 'block';
+      await loadSongs();
+    } catch(err){
+      pw = '';
+      el.loginErr.textContent = 'パスワードが違います';
+    } finally{ el.loginBtn.disabled = false; }
+  }
+
+  function logout(){
+    sessionStorage.removeItem(STORAGE_KEY);
+    pw = '';
+    songs = [];
+    el.mainScreen.style.display = 'none';
+    el.loginScreen.style.display = 'flex';
+    el.pwInput.value = '';
+    el.loginErr.textContent = '';
+  }
+
+  async function loadSongs(){
+    el.list.innerHTML = '<div class="loading">LOADING...</div>';
+    try{
+      const data = await api({ action:'getSongs' });
+      songs = data.songs || [];
+      el.updatedAt.textContent = data.updatedAt || '-';
+      render();
+    } catch(err){
+      el.list.innerHTML = `<div class="empty"><div class="big">読み込みエラー</div><div>${esc(err.message)}</div></div>`;
+    }
+  }
+
+  /* ===== ソート・フィルター ===== */
+  function compareSongs(a,b,field,mode){
+    // 五十音ソートは歌手読みを優先、なければ歌手名にフォールバック
+    const av = mode==='kana' && field==='artist' ? (a.artistKana||a.artist||'') : (a[field]||'');
+    const bv = mode==='kana' && field==='artist' ? (b.artistKana||b.artist||'') : (b[field]||'');
+    if(mode==='kana') return av.localeCompare(bv,'ja');
+    if(mode==='alpha') return av.localeCompare(bv,'en',{sensitivity:'base',numeric:true});
+    return 0;
+  }
+  function getVisibleSongs(){
+    const q = el.search.value.trim().toLowerCase();
+    let list = songs.slice();
+    if(q) list = list.filter(s=>(s.title||'').toLowerCase().includes(q)||(s.artist||'').toLowerCase().includes(q)||(s.work||'').toLowerCase().includes(q)||(s.notes||'').toLowerCase().includes(q));
+    const field=el.sortField.value, mode=el.sortMode.value;
+    if(mode!=='none') list.sort((a,b)=>compareSongs(a,b,field,mode));
+    if(reverse) list.reverse();
+    return list;
+  }
+
+  /* ===== カード描画 ===== */
+  function songCard(song, index){
+    const no = String(index+1).padStart(2,'0');
+    const isEditing = editingRow === song.row;
+    const selected = selectedRows.includes(song.row);
+    if(isEditing) return `
+      <div class="song-card" data-row="${song.row}">
+        <div class="track-no">${no}</div>
+        <div class="song-body">
+          <div class="edit-grid">
+            <label class="fl">曲名<input type="text" class="e-title" value="${esc(song.title)}" maxlength="120"></label>
+            <label class="fl">歌手<input type="text" class="e-artist" value="${esc(song.artist)}" maxlength="80"></label>
+            <label class="fl">歌手読み<input type="text" class="e-artist-kana" value="${esc(song.artistKana)}" placeholder="ひらがなで入力" maxlength="80"></label>
+            <label class="fl">作品名<input type="text" class="e-work" value="${esc(song.work)}" maxlength="80"></label>
+            <label class="fl">備考<input type="text" class="e-notes" value="${esc(song.notes)}" maxlength="120"></label>
+            <label class="fl" style="justify-content:flex-end;"><label class="e-check-label"><input type="checkbox" class="e-milishiri"${song.milishiri?' checked':''}> ミリしり</label></label>
+          </div>
+          <div class="edit-actions">
+            <button class="btn sm ghost" data-action="cancel-edit">${ICONS.close} キャンセル</button>
+            <button class="btn sm primary" data-action="save-edit" data-row="${song.row}">${ICONS.save} 保存</button>
+          </div>
+        </div>
+      </div>`;
+    return `
+      <div class="song-card" data-row="${song.row}">
+        <div class="track-no">${no}</div>
+        <div class="song-body">
+          <div class="song-row">
+            <span class="song-title">${esc(song.title)||'(無題)'}</span>
+            <button class="icon-btn" data-action="copy-title" data-row="${song.row}" title="曲名をコピー">${ICONS.copy}</button>
+          </div>
+          ${song.artist?`<div class="song-row song-artist"><span>🎙 ${esc(song.artist)}</span><button class="icon-btn" data-action="copy-artist" data-row="${song.row}" title="歌手名をコピー">${ICONS.copy}</button></div>`:''}
+          <div class="meta-row">
+            ${song.work?`<span class="badge-work">📀 ${esc(song.work)}</span>`:''}
+            ${song.milishiri?`<span class="badge-milishiri">🎵 ミリしり</span>`:''}
+          </div>
+          ${song.notes?`<div class="notes-text">💬 ${esc(song.notes)}</div>`:''}
+        </div>
+        <div class="song-actions"><div class="row">
+          <button class="icon-btn${selected?' selected':''}" data-action="toggle-select" data-row="${song.row}" title="${selected?'リストから外す':'本日歌った曲リストに追加'}">${selected?ICONS.check:ICONS.plus}</button>
+          <button class="icon-btn" data-action="edit" data-row="${song.row}" title="編集">${ICONS.edit}</button>
+          <button class="icon-btn danger" data-action="delete" data-row="${song.row}" title="削除">${ICONS.trash}</button>
+        </div></div>
+      </div>`;
+  }
+
+  /* ===== セットリスト ===== */
+  function toggleSelect(row){
+    const idx = selectedRows.indexOf(row);
+    if(idx===-1) selectedRows.push(row); else selectedRows.splice(idx,1);
+    render();
+  }
+  function renderSetlist(){
+    const list = selectedRows.map(r=>songs.find(s=>s.row===r)).filter(Boolean);
+    el.setlistCount.textContent = list.length+'曲';
+    el.setlistCopyBtn.disabled = list.length===0;
+    el.setlistClearBtn.disabled = list.length===0;
+    el.setlistItems.innerHTML = list.length===0
+      ? '<li class="setlist-empty">下のリストから歌った曲を選ぶと、ここに追加されます</li>'
+      : list.map((s,i)=>`<li class="setlist-item"><span class="no">${i+1}</span><span class="label">${esc(s.title)}${s.artist?` <span class="a">/ ${esc(s.artist)}</span>`:''}</span><button class="remove" data-remove="${s.row}">${ICONS.x}</button></li>`).join('');
+  }
+
+  /* ===== メイン描画 ===== */
+  function render(){
+    renderSetlist();
+    const visible = getVisibleSongs();
+    el.countText.textContent = `全 ${songs.length} 曲${el.search.value.trim()?` / 表示 ${visible.length} 曲`:''}`;
+    if(songs.length===0){ el.list.innerHTML=`<div class="empty"><div class="big">まだ曲が登録されていません</div><div>上のフォームから追加しましょう 🎤</div></div>`; return; }
+    if(visible.length===0){ el.list.innerHTML=`<div class="empty"><div class="big">該当する曲が見つかりません</div></div>`; return; }
+    el.list.innerHTML = visible.map((s,i)=>songCard(s,i)).join('');
+  }
+
+  /* ===== API呼び出し共通 ===== */
+  async function runApi(params, msg){
+    if(busy) return;
+    setBusy(true);
+    if(msg) showToast(msg);
+    try{
+      const data = await api(params);
+      songs = data.songs || songs;
+      const validRows = new Set(songs.map(s=>s.row));
+      selectedRows = selectedRows.filter(r=>validRows.has(r));
+      editingRow = null;
+      render();
+      el.updatedAt.textContent = new Date().toLocaleString('ja-JP');
+    } catch(err){
+      showToast(err.message||'エラーが発生しました','err');
+    } finally{ setBusy(false); }
+  }
+
+  /* ===== イベント: ログイン ===== */
+  el.loginBtn.addEventListener('click', login);
+  el.pwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+  el.logoutBtn.addEventListener('click', logout);
+
+  /* ===== イベント: 曲追加フォーム ===== */
+  el.addForm.addEventListener('submit', async e=>{
+    e.preventDefault();
+    if(busy) return;
+    const title = el.fTitle.value;
+    if(!title.trim()){ el.fTitle.focus(); return; }
+    await runApi({ action:'addSong', song:{ title, artist:el.fArtist.value, artistKana:el.fArtistKana.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
+    showToast('追加しました','ok');
+    el.addForm.reset();
+    el.fArtistKana.value = '';
+    el.fMilishiriLabel.classList.remove('on');
+    el.fTitle.focus();
+  });
+  el.fMilishiri.addEventListener('change',()=>{ el.fMilishiriLabel.classList.toggle('on', el.fMilishiri.checked); });
+
+  /* ===== イベント: ソート・検索 ===== */
+  el.search.addEventListener('input', render);
+  el.sortField.addEventListener('change', render);
+  el.sortMode.addEventListener('change', render);
+  el.reverseBtn.addEventListener('click',()=>{ reverse=!reverse; el.reverseBtn.setAttribute('aria-pressed',String(reverse)); render(); });
+
+  /* ===== イベント: 更新・バックアップ・全削除 ===== */
+  el.refreshBtn.addEventListener('click', loadSongs);
+  el.clearAll.addEventListener('click', async()=>{
+    if(songs.length===0) return;
+    if(!confirm(`全 ${songs.length} 曲をすべて削除します。この操作は取り消せません。よろしいですか？`)) return;
+    await runApi({ action:'clearAllSongs' },'削除しています…');
+    showToast('すべて削除しました');
+  });
+  el.exportCsv.addEventListener('click',()=>{
+    if(songs.length===0){ showToast('書き出す曲がありません','err'); return; }
+    const ef=v=>{ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+    const csv='\ufeff'+[['曲名','歌手','作品名','備考'],...songs.map(s=>[s.title,s.artist,s.work,s.notes].map(ef))].map(r=>r.join(',')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+    a.download=`utawaku_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+    showToast('CSVをダウンロードしました','ok');
+  });
+
+  /* ===== イベント: 曲リスト操作 ===== */
+  el.list.addEventListener('click', async e=>{
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const row = Number(btn.dataset.row);
+    const action = btn.dataset.action;
+    const song = songs.find(s=>s.row===row);
+
+    if(action==='toggle-select'){ toggleSelect(row); return; }
+    if(action==='copy-title' && song){ copyText(song.title,'曲名'); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'),1200); return; }
+    if(action==='copy-artist' && song){ copyText(song.artist,'歌手名'); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'),1200); return; }
+    if(action==='edit'){ editingRow=row; render(); return; }
+    if(action==='cancel-edit'){ editingRow=null; render(); return; }
+    if(action==='delete' && song){
+      if(!confirm(`「${song.title||'(無題)'}」を削除しますか？`)) return;
+      await runApi({ action:'deleteSong', row },'削除しています…');
+      showToast('削除しました');
+      return;
+    }
+    if(action==='save-edit'){
+      const card = el.list.querySelector(`.song-card[data-row="${row}"]`);
+      if(!card) return;
+      const data = { title:card.querySelector('.e-title').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
+      if(!data.title.trim()) return;
+      await runApi({ action:'updateSong', row, song:data },'保存しています…');
+      showToast('更新しました','ok');
+    }
+  });
+
+  /* ===== イベント: セットリスト ===== */
+  el.setlistItems.addEventListener('click',e=>{ const b=e.target.closest('[data-remove]'); if(b) toggleSelect(Number(b.dataset.remove)); });
+  el.setlistCopyBtn.addEventListener('click',()=>{
+    const list=selectedRows.map(r=>songs.find(s=>s.row===r)).filter(Boolean);
+    if(!list.length) return;
+    copyText(list.map((s,i)=>`${i+1}. ${s.title}${s.artist?' / '+s.artist:''}`).join('\n'),'本日のセットリスト');
+  });
+  el.setlistClearBtn.addEventListener('click',()=>{
+    if(!selectedRows.length) return;
+    if(!confirm(`選択した ${selectedRows.length} 曲をリストから外します。よろしいですか？`)) return;
+    selectedRows=[]; render();
+  });
+
+  /* ===== インポート ===== */
+  function parseCsvLine(line){ const r=[]; let c='',q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){if(ch==='"'){if(line[i+1]==='"'){c+='"';i++;}else q=false;}else c+=ch;}else{if(ch==='"')q=true;else if(ch===','){r.push(c);c='';}else c+=ch;}} r.push(c); return r; }
+  function parseDelimited(text){ const lines=text.split(/\r\n|\n|\r/).filter(l=>l.trim()); if(!lines.length) return []; const isTab=lines[0].includes('\t'); const split=l=>isTab?l.split('\t'):parseCsvLine(l); const rows=lines.map(split); const h=rows[0].map(v=>(v||'').toLowerCase()); const lh=h.some(v=>/曲|歌手|タイトル|アーティスト|title|artist|work|note/.test(v)); let si=0,cm={title:0,artist:1,work:2,notes:3}; if(lh){si=1;const fc=kws=>{const i=h.findIndex(v=>kws.some(k=>v.includes(k)));return i>=0?i:-1;};cm={title:fc(['曲','タイトル','title']),artist:fc(['歌手','アーティスト','artist']),work:fc(['作品','work']),notes:fc(['備考','メモ','note'])};if(cm.title<0)cm.title=0;} const out=[]; for(let i=si;i<rows.length;i++){const r=rows[i];const t=(cm.title>=0?r[cm.title]:r[0]||'').trim();out.push({title:t,artist:(cm.artist>=0?r[cm.artist]:r[1]||'').trim(),work:(cm.work>=0?r[cm.work]:r[2]||'').trim(),notes:(cm.notes>=0?r[cm.notes]:r[3]||'').trim(),ok:!!t});} return out; }
+  function parseBulk(text){ return text.split(/\r\n|\n|\r/).filter(l=>l.trim()).map(line=>{ const raw=line.trim(); const m=raw.match(/^(.+?)[\s]*[/／｜、,\t][\s]*(.+)$/); if(m) return{title:m[1].trim(),artist:m[2].trim(),work:'',notes:'',ok:!!m[1].trim()}; return{title:raw,artist:'',work:'',notes:'',ok:!!raw}; }); }
+  function buildPreview(rows){ return `<h3>プレビュー</h3><ul class="preview-list">${rows.map((r,i)=>`<li class="preview-item"><span class="p-no">${i+1}</span>${r.ok?`<span class="p-title">${esc(r.title)}</span>${r.artist?`<span class="p-artist">/ ${esc(r.artist)}</span>`:''}` :`<span class="p-err">スキップ（曲名が空）</span>`}</li>`).join('')}</ul>`; }
+
+  async function importRows(rows){
+    const valid = rows.filter(r=>r.ok);
+    if(!valid.length || busy) return;
+    setBusy(true);
+    showToast(`${valid.length}曲を登録しています…`);
+    let ok=0;
+    for(const song of valid){
+      try{ await api({ action:'addSong', song }); ok++; } catch(e){ /* 重複などはスキップ */ }
+    }
+    const data = await api({ action:'getSongs' });
+    songs = data.songs||songs;
+    render();
+    el.updatedAt.textContent = new Date().toLocaleString('ja-JP');
+    setBusy(false);
+    showToast(`${ok}曲を登録しました`+(ok<valid.length?`（${valid.length-ok}曲スキップ）`:''),'ok');
+    return ok;
+  }
+
+  document.getElementById('tab-bulk').addEventListener('click',()=>{ document.getElementById('tab-bulk').setAttribute('aria-selected','true'); document.getElementById('tab-csv').setAttribute('aria-selected','false'); document.getElementById('pane-bulk').classList.add('active'); document.getElementById('pane-csv').classList.remove('active'); });
+  document.getElementById('tab-csv').addEventListener('click',()=>{ document.getElementById('tab-csv').setAttribute('aria-selected','true'); document.getElementById('tab-bulk').setAttribute('aria-selected','false'); document.getElementById('pane-csv').classList.add('active'); document.getElementById('pane-bulk').classList.remove('active'); });
+
+  let bulkRows=[]; const bulkInput=document.getElementById('bulk-input'), bulkParseBtn=document.getElementById('bulk-parse-btn'), bulkImportBtn=document.getElementById('bulk-import-btn'), bulkPreview=document.getElementById('bulk-preview'), bulkOk=document.getElementById('bulk-ok-count'), bulkErr=document.getElementById('bulk-err-count');
+  bulkParseBtn.addEventListener('click',()=>{ if(!bulkInput.value.trim()){showToast('テキストを入力してください','err');return;} bulkRows=parseBulk(bulkInput.value); const ok=bulkRows.filter(r=>r.ok).length,ng=bulkRows.length-ok; bulkPreview.style.display='block'; bulkPreview.innerHTML=buildPreview(bulkRows); bulkImportBtn.disabled=ok===0; bulkOk.style.display=ok?'inline':'none'; bulkOk.textContent=`${ok}曲 登録可`; bulkErr.style.display=ng?'inline':'none'; bulkErr.textContent=`${ng}行 スキップ`; });
+  bulkImportBtn.addEventListener('click', async()=>{ const n=await importRows(bulkRows); if(n>=0){bulkInput.value='';bulkPreview.style.display='none';bulkImportBtn.disabled=true;bulkOk.style.display='none';bulkErr.style.display='none';bulkRows=[];} });
+
+  let csvRows=[]; const csvDrop=document.getElementById('csv-drop-zone'), csvFile=document.getElementById('csv-file-input'), csvImportBtn=document.getElementById('csv-import-btn'), csvPreview=document.getElementById('csv-preview'), csvOk=document.getElementById('csv-ok-count'), csvErr=document.getElementById('csv-err-count');
+  function handleCsvText(text){ csvRows=parseDelimited(text); const ok=csvRows.filter(r=>r.ok).length,ng=csvRows.length-ok; csvPreview.style.display='block'; csvPreview.innerHTML=buildPreview(csvRows); csvImportBtn.disabled=ok===0; csvOk.style.display=ok?'inline':'none'; csvOk.textContent=`${ok}曲 インポート可`; csvErr.style.display=ng?'inline':'none'; csvErr.textContent=`${ng}行 スキップ`; }
+  csvFile.addEventListener('change',()=>{ const f=csvFile.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>handleCsvText(r.result); r.readAsText(f,'UTF-8'); csvFile.value=''; });
+  csvDrop.addEventListener('dragover',e=>{e.preventDefault();csvDrop.classList.add('drag-over');}); csvDrop.addEventListener('dragleave',()=>csvDrop.classList.remove('drag-over')); csvDrop.addEventListener('drop',e=>{e.preventDefault();csvDrop.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(!f)return;const r=new FileReader();r.onload=()=>handleCsvText(r.result);r.readAsText(f,'UTF-8');});
+  csvImportBtn.addEventListener('click', async()=>{ const n=await importRows(csvRows); if(n>=0){csvPreview.style.display='none';csvImportBtn.disabled=true;csvOk.style.display='none';csvErr.style.display='none';csvRows=[];} });
+
+  /* ===== 起動時: セッション復元 ===== */
+  const saved = sessionStorage.getItem(STORAGE_KEY);
+  if(saved){
+    pw = saved;
+    api({ action:'verifyPassword' })
+      .then(()=>{ el.loginScreen.style.display='none'; el.mainScreen.style.display='block'; return loadSongs(); })
+      .catch(()=>{ pw=''; sessionStorage.removeItem(STORAGE_KEY); });
+  }
+
+})();
+</script>
+</body>
+</html>

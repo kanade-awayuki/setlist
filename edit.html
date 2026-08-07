@@ -289,6 +289,7 @@
         <label class="fl"><span class="req">曲名</span><input type="text" id="f-title" placeholder="例: 紅蓮華" required maxlength="120"></label>
         <label class="fl">歌手<input type="text" id="f-artist" placeholder="例: LiSA" maxlength="80"></label>
         <label class="fl">歌手読み<input type="text" id="f-artist-kana" placeholder="例: りさ" maxlength="80"></label>
+        <label class="fl">リリース年<input type="text" id="f-release-year" placeholder="例: 2019" maxlength="10"></label>
         <label class="fl">作品名<input type="text" id="f-work" placeholder="例: 鬼滅の刃" maxlength="80"></label>
         <label class="fl">備考<input type="text" id="f-notes" placeholder="キー -2 など" maxlength="120"></label>
       </div>
@@ -346,8 +347,8 @@
     <h2><span class="num">03</span> 検索・並び替え</h2>
     <div class="toolbar">
       <div class="field-sm search-wrap">検索<input type="search" id="search" placeholder="曲名・歌手・作品名で検索"></div>
-      <div class="field-sm">並び替え対象<select id="sort-field"><option value="title">曲名</option><option value="artist">歌手</option></select></div>
-      <div class="field-sm">並び順<select id="sort-mode"><option value="none">登録順</option><option value="alpha">A→Z（曲名・歌手名）</option><option value="kana">あ→ん（歌手読み専用）</option></select></div>
+      <div class="field-sm">並び替え対象<select id="sort-field"><option value="title">曲名</option><option value="artist">歌手</option><option value="releaseYear">リリース年</option></select></div>
+      <div class="field-sm">並び順<select id="sort-mode"><option value="none">登録順</option><option value="alpha">A→Z（曲名・歌手名）</option><option value="kana">あ→ん（歌手読み専用）</option><option value="year">古い順</option><option value="year-desc">新しい順</option></select></div>
       <button type="button" id="reverse-btn" class="reverse-toggle" aria-pressed="false">
         <svg class="icon" viewBox="0 0 24 24"><path d="M7 16V4M7 4 3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>逆順
       </button>
@@ -430,6 +431,7 @@
     fTitle:         document.getElementById('f-title'),
     fArtist:        document.getElementById('f-artist'),
     fArtistKana:    document.getElementById('f-artist-kana'),
+    fReleaseYear:   document.getElementById('f-release-year'),
     fWork:          document.getElementById('f-work'),
     fNotes:         document.getElementById('f-notes'),
     fMilishiri:     document.getElementById('f-milishiri'),
@@ -527,6 +529,10 @@
 
   /* ===== ソート・フィルター ===== */
   function compareSongs(a,b,field,mode){
+    if(mode==='year' || mode==='year-desc'){
+      const av = parseInt(a.releaseYear)||0, bv = parseInt(b.releaseYear)||0;
+      return mode==='year' ? av-bv : bv-av;
+    }
     // 五十音ソートは歌手読みを優先、なければ歌手名にフォールバック
     const av = mode==='kana' && field==='artist' ? (a.artistKana||a.artist||'') : (a[field]||'');
     const bv = mode==='kana' && field==='artist' ? (b.artistKana||b.artist||'') : (b[field]||'');
@@ -557,6 +563,7 @@
             <label class="fl">曲名<input type="text" class="e-title" value="${esc(song.title)}" maxlength="120"></label>
             <label class="fl">歌手<input type="text" class="e-artist" value="${esc(song.artist)}" maxlength="80"></label>
             <label class="fl">歌手読み<input type="text" class="e-artist-kana" value="${esc(song.artistKana)}" placeholder="ひらがなで入力" maxlength="80"></label>
+            <label class="fl">リリース年<input type="text" class="e-release-year" value="${esc(song.releaseYear)}" placeholder="例: 2019" maxlength="10"></label>
             <label class="fl">作品名<input type="text" class="e-work" value="${esc(song.work)}" maxlength="80"></label>
             <label class="fl">備考<input type="text" class="e-notes" value="${esc(song.notes)}" maxlength="120"></label>
             <label class="fl" style="justify-content:flex-end;"><label class="e-check-label"><input type="checkbox" class="e-milishiri"${song.milishiri?' checked':''}> ミリしり</label></label>
@@ -578,6 +585,7 @@
           ${song.artist?`<div class="song-row song-artist"><span>🎙 ${esc(song.artist)}</span><button class="icon-btn" data-action="copy-artist" data-row="${song.row}" title="歌手名をコピー">${ICONS.copy}</button></div>`:''}
           <div class="meta-row">
             ${song.work?`<span class="badge-work">📀 ${esc(song.work)}</span>`:''}
+            ${song.releaseYear?`<span class="badge-work">📅 ${esc(song.releaseYear)}</span>`:''}
             ${song.milishiri?`<span class="badge-milishiri">🎵 ミリしり</span>`:''}
           </div>
           ${song.notes?`<div class="notes-text">💬 ${esc(song.notes)}</div>`:''}
@@ -645,7 +653,7 @@
     if(busy) return;
     const title = el.fTitle.value;
     if(!title.trim()){ el.fTitle.focus(); return; }
-    await runApi({ action:'addSong', song:{ title, artist:el.fArtist.value, artistKana:el.fArtistKana.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
+    await runApi({ action:'addSong', song:{ title, artist:el.fArtist.value, artistKana:el.fArtistKana.value, releaseYear:el.fReleaseYear.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
     showToast('追加しました','ok');
     el.addForm.reset();
     el.fArtistKana.value = '';
@@ -701,7 +709,7 @@
     if(action==='save-edit'){
       const card = el.list.querySelector(`.song-card[data-row="${row}"]`);
       if(!card) return;
-      const data = { title:card.querySelector('.e-title').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
+      const data = { title:card.querySelector('.e-title').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, releaseYear:card.querySelector('.e-release-year').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
       if(!data.title.trim()) return;
       await runApi({ action:'updateSong', row, song:data },'保存しています…');
       showToast('更新しました','ok');

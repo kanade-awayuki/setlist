@@ -171,6 +171,7 @@
         <select id="sort-field">
           <option value="title">曲名</option>
           <option value="artist">歌手</option>
+          <option value="releaseYear">リリース年</option>
         </select>
       </div>
       <div class="field-sm">並び順
@@ -178,6 +179,8 @@
           <option value="none">登録順</option>
           <option value="alpha">A→Z（曲名・歌手名）</option>
           <option value="kana">あ→ん（歌手読み専用）</option>
+          <option value="year">古い順</option>
+          <option value="year-desc">新しい順</option>
         </select>
       </div>
       <button type="button" id="reverse-btn" class="reverse-toggle" aria-pressed="false">
@@ -208,7 +211,7 @@
   'use strict';
 
   // ▼▼▼ ここにApps ScriptのデプロイURLを貼り付けてください ▼▼▼
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/execここにURLを貼り付け/exec';
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
   // ▼▼▼ タイトル横のアイコンを変更できます ▼▼▼
@@ -231,8 +234,8 @@
   //   例: './icon.png'
   //   画像を使う場合は ICON_EMOJI を '' (空) にしてください
   //
-  const ICON_EMOJI     = '';   // ← 絵文字アイコン（画像使用時は '' に）
-  const ICON_IMAGE_URL = 'https://lh3.googleusercontent.com/d/1fJZfFFGBKh_XOsBVh3jT7N2U1-wr603E';     // ← 画像URL（絵文字使用時は '' のまま）
+  const ICON_EMOJI     = '🎤';   // ← 絵文字アイコン（画像使用時は '' に）
+  const ICON_IMAGE_URL = '';     // ← 画像URL（絵文字使用時は '' のまま）
   // ============================================
 
   // アイコンを描画
@@ -286,6 +289,10 @@
   }
 
   function compareSongs(a, b, field, mode){
+    if(mode==='year' || mode==='year-desc'){
+      const av = parseInt(a.releaseYear)||0, bv = parseInt(b.releaseYear)||0;
+      return mode==='year' ? av-bv : bv-av;
+    }
     // 五十音ソートは歌手読みを優先、なければ歌手名にフォールバック
     const av = mode==='kana' && field==='artist' ? (a.artistKana||a.artist||'') : (a[field]||'');
     const bv = mode==='kana' && field==='artist' ? (b.artistKana||b.artist||'') : (b[field]||'');
@@ -319,6 +326,7 @@
           ${hasArtist ? `<button class="copy-both" data-copy="both" data-i="${index}" title="曲名・歌手名をまとめてコピー">${SVG}両方コピー</button>` : ''}
           <div class="meta-badges">
             ${song.work ? `<span class="badge-work">📀 ${esc(song.work)}</span>` : ''}
+            ${song.releaseYear ? `<span class="badge-work">📅 ${esc(song.releaseYear)}</span>` : ''}
           </div>
         </div>
         ${song.notes ? `<div class="notes-text">💬 ${esc(song.notes)}</div>` : ''}

@@ -467,6 +467,14 @@
     if (!btn) return;
     selectedIdx = btn.dataset.idx;
     el.indexBar.querySelectorAll('.idx-btn').forEach(b => b.classList.toggle('active', b === btn));
+    if (selectedIdx) {
+      // 索引で絞り込んだら曲名・五十音順に自動切り替え
+      el.sortField.value = 'title';
+      el.sortMode.value = 'kana';
+    } else {
+      // すべてに戻したら登録順に戻す
+      el.sortMode.value = 'none';
+    }
     render();
   });
   el.refreshBtn.addEventListener('click', () => fetchSongs(false));

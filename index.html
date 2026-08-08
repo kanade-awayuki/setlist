@@ -125,7 +125,21 @@
   .copy-both:hover{border-color:var(--accent-2);background:rgba(155,140,255,.18);}
   .copy-both.copied{border-color:#6fd9b0;color:var(--ok-text);background:rgba(111,217,176,.12);}
 
-  /* --- 空・ローディング --- */
+  /* --- 索引バー --- */
+  .index-bar{
+    display:flex;flex-wrap:wrap;gap:5px;padding:10px 0 2px;
+  }
+  .idx-btn{
+    min-width:34px;height:32px;border-radius:8px;padding:0 8px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--font-led);font-size:13px;letter-spacing:.02em;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);
+    transition:border-color .12s,background .12s,color .12s;
+  }
+  .idx-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  .idx-btn.active{background:rgba(255,157,183,.18);border-color:var(--accent);color:var(--accent-text);font-weight:700;}
+  .idx-btn.all{font-size:11px;}
+  .idx-sep{width:1px;height:24px;background:var(--border);align-self:center;}
   .empty{text-align:center;padding:46px 18px;color:var(--text-dim);border:1px dashed var(--border);border-radius:var(--radius-md);}
   .empty .big{font-family:var(--font-card);font-size:17px;color:var(--text-dim);margin-bottom:6px;}
   .loading{text-align:center;padding:40px;color:var(--text-faint);font-family:var(--font-led);font-size:13px;letter-spacing:.08em;}
@@ -178,7 +192,7 @@
         <select id="sort-mode">
           <option value="none">登録順</option>
           <option value="alpha">A→Z（曲名・歌手名）</option>
-          <option value="kana">あ→ん（歌手読み専用）</option>
+          <option value="kana">あ→ん（曲名読み・歌手読み）</option>
           <option value="year">古い順</option>
           <option value="year-desc">新しい順</option>
         </select>
@@ -191,6 +205,23 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
         更新
       </button>
+    </div>
+    <div class="index-bar" id="index-bar">
+      <button class="idx-btn all active" data-idx="">すべて</button>
+      <div class="idx-sep"></div>
+      <button class="idx-btn" data-idx="あ">あ</button>
+      <button class="idx-btn" data-idx="か">か</button>
+      <button class="idx-btn" data-idx="さ">さ</button>
+      <button class="idx-btn" data-idx="た">た</button>
+      <button class="idx-btn" data-idx="な">な</button>
+      <button class="idx-btn" data-idx="は">は</button>
+      <button class="idx-btn" data-idx="ま">ま</button>
+      <button class="idx-btn" data-idx="や">や</button>
+      <button class="idx-btn" data-idx="ら">ら</button>
+      <button class="idx-btn" data-idx="わ">わ</button>
+      <div class="idx-sep"></div>
+      <button class="idx-btn" data-idx="A">A-Z</button>
+      <button class="idx-btn" data-idx="other">他</button>
     </div>
   </section>
 
@@ -254,8 +285,7 @@
     copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
   };
 
-  let songs = [];
-  let reverse = false;
+  let songs = [], reverse = false, selectedIdx = '';
 
   const el = {
     list: document.getElementById('list'),
@@ -266,6 +296,7 @@
     refreshBtn: document.getElementById('refresh-btn'),
     updatedAt: document.getElementById('updated-at'),
     errorMsg: document.getElementById('error-msg'),
+    indexBar: document.getElementById('index-bar'),
     toast: document.getElementById('toast')
   };
 
@@ -288,23 +319,68 @@
     } catch(e){ showToast('コピーに失敗しました'); }
   }
 
+  // 行ごとの文字セット
+  const ROW_MAP = {
+    'あ': 'あいうえおぁぃぅぇぉ',
+    'か': 'かきくけこがぎぐげご',
+    'さ': 'さしすせそざじずぜぞ',
+    'た': 'たちつてとだぢづでどっ',
+    'な': 'なにぬねの',
+    'は': 'はひふへほばびぶべぼぱぴぷぺぽ',
+    'ま': 'まみむめも',
+    'や': 'やゆよゃゅょ',
+    'ら': 'らりるれろ',
+    'わ': 'わゐゑをんっー'
+  };
+
+  function getKanaRow(ch){
+    if (!ch) return 'other';
+    const c = ch.toLowerCase();
+    if (/[a-z]/.test(c)) return 'A';
+    for (const [row, chars] of Object.entries(ROW_MAP)){
+      if (chars.includes(ch)) return row;
+    }
+    return 'other';
+  }
+
+  function getTitleReading(song){
+    return song.titleKana || song.title || '';
+  }
+
   function compareSongs(a, b, field, mode){
     if(mode==='year' || mode==='year-desc'){
       const av = parseInt(a.releaseYear)||0, bv = parseInt(b.releaseYear)||0;
       return mode==='year' ? av-bv : bv-av;
     }
-    // 五十音ソートは歌手読みを優先、なければ歌手名にフォールバック
-    const av = mode==='kana' && field==='artist' ? (a.artistKana||a.artist||'') : (a[field]||'');
-    const bv = mode==='kana' && field==='artist' ? (b.artistKana||b.artist||'') : (b[field]||'');
-    if (mode==='kana') return av.localeCompare(bv, 'ja');
+    // 曲名ソートはtitleKana優先、歌手ソートはartistKana優先
+    let av, bv;
+    if (mode==='kana'){
+      av = field==='artist' ? (a.artistKana||a.artist||'') : getTitleReading(a);
+      bv = field==='artist' ? (b.artistKana||b.artist||'') : getTitleReading(b);
+      return av.localeCompare(bv, 'ja');
+    }
+    av = a[field]||''; bv = b[field]||'';
     if (mode==='alpha') return av.localeCompare(bv, 'en', {sensitivity:'base', numeric:true});
     return 0;
+  }
+
+  function matchesIndex(song){
+    if (!selectedIdx) return true;
+    const reading = getTitleReading(song);
+    const firstCh = reading[0] || '';
+    if (selectedIdx === 'A') return /^[a-zA-Z]/.test(firstCh);
+    if (selectedIdx === 'other'){
+      if (/^[a-zA-Z]/.test(firstCh)) return false;
+      return !Object.values(ROW_MAP).some(chars => chars.includes(firstCh));
+    }
+    return (ROW_MAP[selectedIdx] || '').includes(firstCh);
   }
 
   function getVisibleSongs(){
     const q = el.search.value.trim().toLowerCase();
     let list = songs.slice();
     if (q) list = list.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q) || (s.work||'').toLowerCase().includes(q) || (s.notes||'').toLowerCase().includes(q));
+    if (selectedIdx) list = list.filter(matchesIndex);
     const field = el.sortField.value, mode = el.sortMode.value;
     if (mode !== 'none') list.sort((a,b) => compareSongs(a,b,field,mode));
     if (reverse) list.reverse();
@@ -383,6 +459,14 @@
   el.reverseBtn.addEventListener('click', () => {
     reverse = !reverse;
     el.reverseBtn.setAttribute('aria-pressed', String(reverse));
+    render();
+  });
+
+  el.indexBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.idx-btn');
+    if (!btn) return;
+    selectedIdx = btn.dataset.idx;
+    el.indexBar.querySelectorAll('.idx-btn').forEach(b => b.classList.toggle('active', b === btn));
     render();
   });
   el.refreshBtn.addEventListener('click', () => fetchSongs(false));

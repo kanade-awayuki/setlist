@@ -288,6 +288,7 @@
       <div class="field-grid" style="grid-template-columns:1.3fr 1fr 1fr 1fr 1fr 1fr;">
         <label class="fl"><span class="req">曲名</span><input type="text" id="f-title" placeholder="例: 紅蓮華" required maxlength="120"></label>
         <label class="fl">曲名読み<input type="text" id="f-title-kana" placeholder="例: ぐれんげ" maxlength="120"></label>
+        <label class="fl">ABC索引<input type="text" id="f-title-alpha" placeholder="例: S（Sugar→S）" maxlength="10"></label>
         <label class="fl">歌手<input type="text" id="f-artist" placeholder="例: LiSA" maxlength="80"></label>
         <label class="fl">歌手読み<input type="text" id="f-artist-kana" placeholder="例: りさ" maxlength="80"></label>
         <label class="fl">リリース年<input type="text" id="f-release-year" placeholder="例: 2019" maxlength="10"></label>
@@ -431,6 +432,7 @@
     addSubmitBtn:   document.getElementById('add-submit-btn'),
     fTitle:         document.getElementById('f-title'),
     fTitleKana:     document.getElementById('f-title-kana'),
+    fTitleAlpha:    document.getElementById('f-title-alpha'),
     fArtist:        document.getElementById('f-artist'),
     fArtistKana:    document.getElementById('f-artist-kana'),
     fReleaseYear:   document.getElementById('f-release-year'),
@@ -564,6 +566,7 @@
           <div class="edit-grid">
             <label class="fl">曲名<input type="text" class="e-title" value="${esc(song.title)}" maxlength="120"></label>
             <label class="fl">曲名読み<input type="text" class="e-title-kana" value="${esc(song.titleKana)}" placeholder="ひらがなで入力" maxlength="120"></label>
+            <label class="fl">ABC索引<input type="text" class="e-title-alpha" value="${esc(song.titleAlpha)}" placeholder="例: S" maxlength="10"></label>
             <label class="fl">歌手<input type="text" class="e-artist" value="${esc(song.artist)}" maxlength="80"></label>
             <label class="fl">歌手読み<input type="text" class="e-artist-kana" value="${esc(song.artistKana)}" placeholder="ひらがなで入力" maxlength="80"></label>
             <label class="fl">リリース年<input type="text" class="e-release-year" value="${esc(song.releaseYear)}" placeholder="例: 2019" maxlength="10"></label>
@@ -656,7 +659,7 @@
     if(busy) return;
     const title = el.fTitle.value;
     if(!title.trim()){ el.fTitle.focus(); return; }
-    await runApi({ action:'addSong', song:{ title, titleKana:el.fTitleKana.value, artist:el.fArtist.value, artistKana:el.fArtistKana.value, releaseYear:el.fReleaseYear.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
+    await runApi({ action:'addSong', song:{ title, titleKana:el.fTitleKana.value, titleAlpha:el.fTitleAlpha.value, artist:el.fArtist.value, artistKana:el.fArtistKana.value, releaseYear:el.fReleaseYear.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
     showToast('追加しました','ok');
     el.addForm.reset();
     el.fArtistKana.value = '';
@@ -712,7 +715,7 @@
     if(action==='save-edit'){
       const card = el.list.querySelector(`.song-card[data-row="${row}"]`);
       if(!card) return;
-      const data = { title:card.querySelector('.e-title').value, titleKana:card.querySelector('.e-title-kana').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, releaseYear:card.querySelector('.e-release-year').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
+      const data = { title:card.querySelector('.e-title').value, titleKana:card.querySelector('.e-title-kana').value, titleAlpha:card.querySelector('.e-title-alpha').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, releaseYear:card.querySelector('.e-release-year').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
       if(!data.title.trim()) return;
       await runApi({ action:'updateSong', row, song:data },'保存しています…');
       showToast('更新しました','ok');

@@ -129,6 +129,14 @@
   .index-bar{
     display:flex;flex-wrap:wrap;gap:5px;padding:10px 0 2px;
   }
+  .idx-target{
+    display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:0 0 auto;align-self:center;
+  }
+  .idx-target-btn{
+    padding:6px 13px;font-size:12px;font-family:var(--font-body);
+    background:var(--surface-2);border:none;color:var(--text-dim);cursor:pointer;
+  }
+  .idx-target-btn.active{background:rgba(255,157,183,.18);color:var(--accent-text);font-weight:700;}
   .idx-btn{
     min-width:34px;height:32px;border-radius:8px;padding:0 8px;
     display:inline-flex;align-items:center;justify-content:center;
@@ -207,6 +215,11 @@
       </button>
     </div>
     <div class="index-bar" id="index-bar">
+      <div class="idx-target">
+        <button class="idx-target-btn active" data-target="title">曲名</button>
+        <button class="idx-target-btn" data-target="artist">歌手</button>
+      </div>
+      <div class="idx-sep"></div>
       <button class="idx-btn all active" data-idx="">すべて</button>
       <div class="idx-sep"></div>
       <button class="idx-btn" data-idx="あ">あ</button>
@@ -285,7 +298,7 @@
     copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
   };
 
-  let songs = [], reverse = false, selectedIdx = '';
+  let songs = [], reverse = false, selectedIdx = '', idxTarget = 'title';
 
   const el = {
     list: document.getElementById('list'),
@@ -364,15 +377,41 @@
     return 0;
   }
 
+  function getArtistReading(song){
+    return song.artistKana || song.artist || '';
+  }
+
   function matchesIndex(song){
     if (!selectedIdx) return true;
-    const reading = getTitleReading(song);
-    const firstCh = reading[0] || '';
-    if (selectedIdx === 'A') return /^[a-zA-Z]/.test(firstCh);
+    const isArtist = idxTarget === 'artist';
+
+    if (selectedIdx === 'A'){
+      if (isArtist){
+        // 歌手: artistKanaが英字始まり、またはartist名が英字始まり
+        const ar = getArtistReading(song);
+        return /^[a-zA-Z]/.test(ar) || /^[a-zA-Z]/.test(song.artist||'');
+      }
+      // 曲名: titleAlphaフィールドを参照
+      return !!song.titleAlpha && /^[a-zA-Z]/i.test(song.titleAlpha.trim());
+    }
+
     if (selectedIdx === 'other'){
+      if (isArtist){
+        const ar = getArtistReading(song);
+        const fc = ar[0] || '';
+        if (/^[a-zA-Z]/.test(fc) || /^[a-zA-Z]/.test(song.artist||'')) return false;
+        return !Object.values(ROW_MAP).some(chars => chars.includes(fc));
+      }
+      if (song.titleAlpha && /^[a-zA-Z]/i.test(song.titleAlpha.trim())) return false;
+      const reading = getTitleReading(song);
+      const firstCh = reading[0] || '';
       if (/^[a-zA-Z]/.test(firstCh)) return false;
       return !Object.values(ROW_MAP).some(chars => chars.includes(firstCh));
     }
+
+    // あ〜わ行
+    const reading = isArtist ? getArtistReading(song) : getTitleReading(song);
+    const firstCh = reading[0] || '';
     return (ROW_MAP[selectedIdx] || '').includes(firstCh);
   }
 
@@ -463,16 +502,28 @@
   });
 
   el.indexBar.addEventListener('click', (e) => {
+    // 索引対象の切り替え（曲名/歌手）
+    const targetBtn = e.target.closest('.idx-target-btn');
+    if (targetBtn) {
+      idxTarget = targetBtn.dataset.target;
+      el.indexBar.querySelectorAll('.idx-target-btn').forEach(b => b.classList.toggle('active', b === targetBtn));
+      // 対象が変わったら索引もすべてにリセット
+      selectedIdx = '';
+      el.indexBar.querySelectorAll('.idx-btn').forEach(b => b.classList.toggle('active', b.dataset.idx === ''));
+      el.sortMode.value = 'none';
+      render();
+      return;
+    }
+    // 索引ボタン
     const btn = e.target.closest('.idx-btn');
     if (!btn) return;
     selectedIdx = btn.dataset.idx;
     el.indexBar.querySelectorAll('.idx-btn').forEach(b => b.classList.toggle('active', b === btn));
     if (selectedIdx) {
-      // 索引で絞り込んだら曲名・五十音順に自動切り替え
-      el.sortField.value = 'title';
+      // 絞り込んだら対象フィールドで五十音順に自動切り替え
+      el.sortField.value = idxTarget === 'artist' ? 'artist' : 'title';
       el.sortMode.value = 'kana';
     } else {
-      // すべてに戻したら登録順に戻す
       el.sortMode.value = 'none';
     }
     render();

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歌ったリスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#fbf8fc; --bg-1:#f3eefa;
+    --surface:#ffffff; --surface-2:#f6f1fc;
+    --border:#e3dbf2; --border-soft:#ece5f7;
+    --text:#332d45; --text-dim:#6f6685; --text-faint:#948c9e;
+    --accent:#ff9db7; --accent-deep:#ff7ca0; --accent-2:#9b8cff;
+    --accent-text:#c93d70; --accent2-text:#6c4fe0;
+    --ok:#6fd9b0; --ok-text:#178a68;
+    --shadow-sm:0 4px 14px rgba(155,140,190,.18);
+    --shadow-lg:0 20px 50px rgba(155,140,190,.3);
+    --radius-lg:20px; --radius-md:14px; --radius-sm:9px;
+    --font-display:'Dela Gothic One',sans-serif;
+    --font-card:'Zen Maru Gothic',sans-serif;
+    --font-body:'Zen Kaku Gothic New',sans-serif;
+    --font-led:'DotGothic16',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    color:var(--text);font-family:var(--font-body);line-height:1.5;
+    padding:28px 18px 60px;
+  }
+  .wrap{max-width:680px;margin:0 auto;}
+
+  /* header */
+  header{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+  .site-icon{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 3px rgba(255,157,183,.16),0 0 20px rgba(255,157,183,.40);
+  }
+  .title-block h1{
+    font-family:var(--font-display);font-weight:400;font-size:20px;letter-spacing:.06em;margin:0 0 2px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title-block p{margin:0;font-size:12px;color:var(--text-dim);}
+  .count-badge{
+    margin-left:auto;font-family:var(--font-led);font-size:11px;letter-spacing:.1em;
+    color:var(--ok-text);border:1px solid rgba(111,217,176,.4);background:rgba(111,217,176,.10);
+    padding:6px 12px;border-radius:999px;white-space:nowrap;
+  }
+
+  /* NOW PLAYING mini */
+  .now-mini{
+    display:flex;align-items:center;gap:12px;
+    background:linear-gradient(135deg,rgba(255,157,183,.12),rgba(155,140,255,.08));
+    border:1px solid var(--accent);border-radius:var(--radius-md);
+    padding:12px 16px;margin-bottom:18px;
+  }
+  .now-mini-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:0 0 auto;animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .now-mini-label{font-family:var(--font-led);font-size:10px;color:var(--accent-text);letter-spacing:.1em;white-space:nowrap;}
+  .now-mini-title{font-family:var(--font-card);font-size:15px;font-weight:600;word-break:break-word;flex:1 1 auto;min-width:0;}
+  .now-mini-artist{font-size:12px;color:var(--accent2-text);}
+  .now-mini-none{color:var(--text-faint);font-size:13px;}
+
+  /* panel */
+  .panel{
+    background:linear-gradient(180deg,var(--surface),var(--bg-1));
+    border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow-sm);
+  }
+  .panel-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:14px;
+    font-family:var(--font-led);font-size:11px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;
+  }
+  .panel-head .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;}
+
+  /* history list */
+  .history-list{display:flex;flex-direction:column;gap:8px;}
+  .history-card{
+    display:flex;align-items:center;gap:12px;
+    background:var(--surface);border:1px solid var(--border-soft);
+    border-radius:var(--radius-md);padding:12px 14px;box-shadow:var(--shadow-sm);
+    position:relative;overflow:hidden;
+  }
+  .history-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--ok),var(--accent-2));}
+  .history-num{
+    flex:0 0 auto;width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-led);font-size:13px;
+    background:rgba(111,217,176,.18);color:var(--ok-text);
+  }
+  .history-body{flex:1 1 auto;min-width:0;}
+  .history-title{font-family:var(--font-card);font-size:16px;font-weight:500;word-break:break-word;}
+  .history-artist{font-size:12.5px;color:var(--accent2-text);margin-top:2px;}
+  .history-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .badge{font-size:11px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;}
+  .badge.milishiri{color:var(--accent-text);background:rgba(255,157,183,.15);border-color:rgba(255,157,183,.4);}
+  .check-mark{flex:0 0 auto;color:var(--ok-text);font-size:18px;font-weight:700;}
+
+  /* copy button */
+  button{font-family:var(--font-body);cursor:pointer;}
+  .copy-btn{
+    display:inline-flex;align-items:center;gap:5px;border-radius:999px;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
+    padding:5px 11px;font-size:11.5px;flex:0 0 auto;
+  }
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  .copy-btn.copied{border-color:var(--ok);color:var(--ok-text);}
+  svg.icon{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* empty */
+  .empty{text-align:center;padding:50px 20px;border:1px dashed var(--border);border-radius:var(--radius-lg);}
+  .empty .big{font-family:var(--font-card);font-size:18px;color:var(--text-dim);margin-bottom:8px;}
+  .empty p{font-size:13px;color:var(--text-faint);}
+
+  /* copy all */
+  .copy-all-btn{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    width:100%;padding:11px;border-radius:var(--radius-md);margin-top:14px;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);
+    font-size:13px;
+  }
+  .copy-all-btn:hover{border-color:var(--ok);color:var(--ok-text);}
+  .copy-all-btn.copied{border-color:var(--ok);color:var(--ok-text);background:rgba(111,217,176,.10);}
+
+  /* toast */
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:10px 16px;border-radius:999px;font-size:12.5px;box-shadow:var(--shadow-lg);
+    opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.ok{border-color:var(--ok);color:var(--ok-text);}
+
+  footer{text-align:center;color:var(--text-faint);font-size:11px;margin-top:24px;}
+  footer .led{font-family:var(--font-led);color:var(--accent-text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="site-icon">🎤</div>
+    <div class="title-block">
+      <h1>歌ったリスト</h1>
+      <p>本日の歌枠 セットリスト履歴</p>
+    </div>
+    <div class="count-badge" id="count-badge">0曲</div>
+  </header>
+
+  <!-- 再生中ミニ表示 -->
+  <div class="now-mini" id="now-mini">
+    <span class="now-mini-dot"></span>
+    <span class="now-mini-label">NOW&nbsp;▶</span>
+    <span class="now-mini-none" id="now-mini-text">まだ始まっていません</span>
+  </div>
+
+  <!-- 履歴リスト -->
+  <div class="panel" id="main-panel">
+    <div class="panel-head"><span class="dot"></span>歌い終わった曲</div>
+    <div id="empty-state">
+      <div class="empty">
+        <div class="big">まだ曲がありません</div>
+        <p>ライブページで「次の曲へ」を押すとここに表示されます</p>
+      </div>
+    </div>
+    <div class="history-list" id="history-list" style="display:none;"></div>
+    <button class="copy-all-btn" id="copy-all-btn" style="display:none;">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+      セットリスト全曲をコピー
+    </button>
+  </div>
+
+  <footer><span class="led">リアルタイム同期中 — 自動更新されます</span></footer>
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const LS_KEY = 'utawaku_live_state';
+  const BC_NAME = 'utawaku_live';
+  const COPY_SVG = '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+
+  let state = { queue:[], current:null, history:[] };
+  let bc = null;
+  try { bc = new BroadcastChannel(BC_NAME); } catch(e){}
+
+  function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function showToast(msg, type){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'show' + (type ? ' '+type : '');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>{ t.className=''; }, 2000);
+  }
+
+  async function copyText(text, label){
+    try{
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else { const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+      showToast((label||'コピー') + 'しました', 'ok');
+    } catch(e){ showToast('コピーに失敗しました'); }
+  }
+
+  function loadState(){
+    try{ const r = localStorage.getItem(LS_KEY); if(r) state = JSON.parse(r); } catch(e){}
+  }
+
+  function render(){
+    const el = {
+      countBadge: document.getElementById('count-badge'),
+      nowMini:    document.getElementById('now-mini'),
+      nowText:    document.getElementById('now-mini-text'),
+      empty:      document.getElementById('empty-state'),
+      histList:   document.getElementById('history-list'),
+      copyAll:    document.getElementById('copy-all-btn'),
+    };
+
+    // NOW PLAYING mini
+    if (state.current){
+      el.nowText.outerHTML = `<span id="now-mini-text"><span class="now-mini-title">${esc(state.current.title)}</span>${state.current.artist ? `<span class="now-mini-artist"> / ${esc(state.current.artist)}</span>` : ''}</span>`;
+    } else {
+      const t = document.getElementById('now-mini-text');
+      if (t) t.outerHTML = `<span id="now-mini-text" class="now-mini-none">${state.history.length > 0 ? 'セットリスト終了' : 'まだ始まっていません'}</span>`;
+    }
+
+    // count
+    el.countBadge.textContent = state.history.length + '曲';
+
+    // history
+    if (state.history.length === 0){
+      el.empty.style.display = 'block';
+      el.histList.style.display = 'none';
+      el.copyAll.style.display = 'none';
+      return;
+    }
+    el.empty.style.display = 'none';
+    el.histList.style.display = 'flex';
+    el.copyAll.style.display = 'flex';
+
+    el.histList.innerHTML = [...state.history].reverse().map((s, i) => {
+      const no = state.history.length - i;
+      return `
+      <div class="history-card">
+        <div class="history-num">${no}</div>
+        <div class="history-body">
+          <div class="history-title">${esc(s.title)||'(無題)'}</div>
+          ${s.artist ? `<div class="history-artist">${esc(s.artist)}</div>` : ''}
+          <div class="history-meta">
+            ${s.work ? `<span class="badge">📀 ${esc(s.work)}</span>` : ''}
+            ${s.releaseYear ? `<span class="badge">📅 ${esc(s.releaseYear)}</span>` : ''}
+            ${s.milishiri ? `<span class="badge milishiri">🎵 ミリしり</span>` : ''}
+          </div>
+        </div>
+        <button class="copy-btn" data-copy-title="${esc(s.title)}" data-copy-artist="${esc(s.artist||'')}" title="コピー">${COPY_SVG}</button>
+        <span class="check-mark">✓</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 個別コピーボタン
+  document.getElementById('history-list').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const title = btn.dataset.copyTitle || '';
+    const artist = btn.dataset.copyArtist || '';
+    const text = artist ? `${title} / ${artist}` : title;
+    await copyText(text, `「${title}」を`);
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1200);
+  });
+
+  // 全曲コピー
+  document.getElementById('copy-all-btn').addEventListener('click', async () => {
+    if (!state.history.length) return;
+    const text = state.history.map((s,i) => `${i+1}. ${s.title}${s.artist ? ' / '+s.artist : ''}`).join('\n');
+    await copyText(text, 'セットリストを');
+    const btn = document.getElementById('copy-all-btn');
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1200);
+  });
+
+  // BroadcastChannel でリアルタイム受信
+  if (bc){
+    bc.onmessage = (e) => {
+      if (!e.data) return;
+      if (e.data.type === 'setlist_push'){
+        const songs = e.data.songs || [];
+        state = { current: songs[0]||null, queue: songs.slice(1), history: [] };
+      } else if (e.data.type === 'state_update'){
+        state = e.data.state;
+      }
+      render();
+    };
+  }
+
+  // localStorage の変化も監視（別ウィンドウ対応）
+  window.addEventListener('storage', (e) => {
+    if (e.key === LS_KEY){ loadState(); render(); }
+  });
+
+  // 定期ポーリング（BroadcastChannel非対応環境のフォールバック）
+  setInterval(() => { loadState(); render(); }, 2000);
+
+  loadState();
+  render();
+})();
+</script>
+</body>
+</html>

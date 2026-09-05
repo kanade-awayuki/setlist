@@ -362,6 +362,10 @@
     <h2>
       <span class="num">04</span> 本日歌った曲リスト <span class="count-led" id="setlist-count">0曲</span>
       <span class="right">
+        <button type="button" id="open-live-btn" class="btn sm" disabled>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          ライブページ
+        </button>
         <button type="button" id="setlist-copy" class="btn sm primary" disabled>
           <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>まとめてコピー
         </button>
@@ -454,7 +458,8 @@
     setlistCount:   document.getElementById('setlist-count'),
     setlistItems:   document.getElementById('setlist-items'),
     setlistCopyBtn: document.getElementById('setlist-copy'),
-    setlistClearBtn:document.getElementById('setlist-clear')
+    setlistClearBtn:document.getElementById('setlist-clear'),
+    openLiveBtn:    document.getElementById('open-live-btn')
   };
 
   /* ===== ユーティリティ ===== */
@@ -615,6 +620,7 @@
     el.setlistCount.textContent = list.length+'曲';
     el.setlistCopyBtn.disabled = list.length===0;
     el.setlistClearBtn.disabled = list.length===0;
+    el.openLiveBtn.disabled = list.length===0;
     el.setlistItems.innerHTML = list.length===0
       ? '<li class="setlist-empty">下のリストから歌った曲を選ぶと、ここに追加されます</li>'
       : list.map((s,i)=>`<li class="setlist-item"><span class="no">${i+1}</span><span class="label">${esc(s.title)}${s.artist?` <span class="a">/ ${esc(s.artist)}</span>`:''}</span><button class="remove" data-remove="${s.row}">${ICONS.x}</button></li>`).join('');
@@ -733,6 +739,21 @@
     if(!selectedRows.length) return;
     if(!confirm(`選択した ${selectedRows.length} 曲をリストから外します。よろしいですか？`)) return;
     selectedRows=[]; render();
+  });
+
+  el.openLiveBtn.addEventListener('click', () => {
+    const list = selectedRows.map(r=>songs.find(s=>s.row===r)).filter(Boolean);
+    if (!list.length) return;
+    // BroadcastChannel と localStorage 両方に書き込む
+    const state = { current: list[0], queue: list.slice(1), history: [] };
+    try { localStorage.setItem('utawaku_live_state', JSON.stringify(state)); } catch(e){}
+    try {
+      const bc = new BroadcastChannel('utawaku_live');
+      bc.postMessage({ type: 'setlist_push', songs: list });
+      setTimeout(() => bc.close(), 500);
+    } catch(e){}
+    window.open('./live.html', 'utawaku_live');
+    showToast('ライブページを開きました', 'ok');
   });
 
   /* ===== インポート ===== */

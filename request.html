@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リクエスト管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#fbf8fc; --bg-1:#f3eefa;
+    --surface:#ffffff; --surface-2:#f6f1fc;
+    --border:#e3dbf2; --border-soft:#ece5f7;
+    --text:#332d45; --text-dim:#6f6685; --text-faint:#948c9e;
+    --accent:#ff9db7; --accent-deep:#ff7ca0; --accent-2:#9b8cff;
+    --accent-text:#c93d70; --accent2-text:#6c4fe0;
+    --ok:#6fd9b0; --ok-text:#178a68;
+    --danger:#ff7a90; --danger-text:#d43b58;
+    --shadow-sm:0 4px 14px rgba(155,140,190,.18);
+    --shadow-lg:0 20px 50px rgba(155,140,190,.3);
+    --radius-lg:20px; --radius-md:14px; --radius-sm:9px;
+    --font-display:'Dela Gothic One',sans-serif;
+    --font-card:'Zen Maru Gothic',sans-serif;
+    --font-body:'Zen Kaku Gothic New',sans-serif;
+    --font-led:'DotGothic16',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    color:var(--text);font-family:var(--font-body);line-height:1.5;
+    padding:28px 18px 60px;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+
+  header{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+  .site-icon{
+    flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 3px rgba(255,157,183,.16),0 0 20px rgba(255,157,183,.40);
+  }
+  .title-block h1{
+    font-family:var(--font-display);font-weight:400;font-size:20px;letter-spacing:.06em;margin:0 0 2px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title-block p{margin:0;font-size:12px;color:var(--text-dim);}
+
+  .panel{
+    background:linear-gradient(180deg,var(--surface),var(--bg-1));
+    border:1px solid var(--border-soft);border-radius:var(--radius-lg);
+    padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow-sm);
+  }
+  .panel-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:16px;
+    font-size:13px;font-weight:700;color:var(--text);
+  }
+  .panel-head .icon{font-size:16px;}
+  .panel-head .badge{
+    font-family:var(--font-led);font-size:10px;color:var(--accent2-text);
+    background:rgba(155,140,255,.15);border:1px solid rgba(155,140,255,.3);
+    padding:1px 8px;border-radius:999px;
+  }
+  .panel-head .badge.ok{color:var(--ok-text);background:rgba(111,217,176,.12);border-color:rgba(111,217,176,.3);}
+  .panel-head-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+  button{font-family:var(--font-body);cursor:pointer;}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--text-dim);padding:7px 14px;font-size:12.5px;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  .btn.danger:hover{border-color:var(--danger);color:var(--danger-text);}
+  svg.icon{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* リクエスト入力 */
+  .input-row{display:flex;gap:8px;margin-bottom:12px;}
+  .req-input{
+    flex:1 1 auto;font-family:var(--font-body);background:var(--bg-1);border:1px solid var(--border);
+    color:var(--text);border-radius:var(--radius-sm);padding:9px 12px;font-size:14px;outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .req-input:focus{border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(155,140,255,.18);}
+  .req-input::placeholder{color:var(--text-faint);}
+  .req-add-btn{
+    flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border-radius:var(--radius-sm);
+    background:rgba(155,140,255,.15);border:1px solid rgba(155,140,255,.4);color:var(--accent2-text);
+    padding:9px 14px;font-size:13px;font-weight:600;
+  }
+  .req-add-btn:hover{background:rgba(155,140,255,.25);}
+
+  /* カードリスト共通 */
+  .req-list{display:flex;flex-direction:column;gap:7px;}
+  .req-card{
+    display:flex;align-items:flex-start;gap:10px;
+    background:var(--surface);border:1px solid rgba(155,140,255,.25);
+    border-radius:var(--radius-sm);padding:10px 13px;position:relative;overflow:hidden;
+  }
+  .req-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-2);}
+  .req-card.done{opacity:.45;border-color:var(--border);}
+  .req-card.done::before{background:var(--ok);}
+  .req-card.done .req-main{text-decoration:line-through;color:var(--text-faint);}
+  .req-no{font-family:var(--font-led);font-size:11px;color:var(--accent2-text);flex:0 0 20px;padding-top:2px;}
+  .req-card.done .req-no{color:var(--ok-text);}
+  .req-body{flex:1 1 auto;min-width:0;}
+  .req-main{font-size:14px;word-break:break-word;font-weight:500;}
+  .req-sub{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
+  .req-actions{display:flex;gap:5px;flex:0 0 auto;align-items:center;}
+  .icon-btn{
+    width:27px;height:27px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid var(--border);color:var(--text-faint);flex:0 0 auto;
+  }
+  .icon-btn.check:hover{border-color:var(--ok);color:var(--ok-text);}
+  .icon-btn.check.on{background:rgba(111,217,176,.12);border-color:var(--ok);color:var(--ok-text);}
+  .icon-btn.del:hover{border-color:var(--danger);color:var(--danger-text);}
+
+  .empty{text-align:center;padding:28px 16px;color:var(--text-faint);font-size:13px;}
+
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:10px 16px;border-radius:999px;font-size:12.5px;box-shadow:var(--shadow-lg);
+    opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.ok{border-color:var(--ok);color:var(--ok-text);}
+  #toast.err{border-color:var(--danger);color:var(--danger-text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="site-icon">📬</div>
+    <div class="title-block">
+      <h1>リクエスト管理</h1>
+      <p>視聴者リクエスト &amp; メモ</p>
+    </div>
+  </header>
+
+  <!-- 視聴者リクエスト（スプレッドシート） -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="icon">📬</span>
+      視聴者リクエスト
+      <span class="badge" id="sheet-badge" style="display:none;"></span>
+      <div class="panel-head-actions">
+        <button class="btn" id="sheet-refresh-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          更新
+        </button>
+        <button class="btn danger" id="sheet-clear-done-btn">対応済みを削除</button>
+        <button class="btn danger" id="sheet-clear-all-btn">全て削除</button>
+      </div>
+    </div>
+    <div class="req-list" id="sheet-req-list">
+      <div class="empty">「更新」を押してリクエストを読み込んでください</div>
+    </div>
+  </section>
+
+  <!-- リクエストメモ（ローカル） -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="icon">💜</span>
+      リクエストメモ
+      <span class="badge ok" id="memo-badge" style="display:none;"></span>
+      <div class="panel-head-actions">
+        <button class="btn danger" id="memo-clear-done-btn">対応済みを削除</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <input type="text" class="req-input" id="memo-input" placeholder="曲名やリクエスト内容を入力…" maxlength="100">
+      <button class="req-add-btn" id="memo-add-btn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        追加
+      </button>
+    </div>
+    <div class="req-list" id="memo-list">
+      <div class="empty">まだメモはありません</div>
+    </div>
+  </section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ▼▼▼ Apps ScriptのデプロイURLとパスワードを設定してください ▼▼▼
+  const API_URL  = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
+  const API_PASS = 'aG42iZzR';
+  // ============================================================
+
+  const MEMO_KEY = 'utawaku_requests';
+
+  function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function showToast(msg, type){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'show'+(type?' '+type:'');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>{ t.className=''; }, 2200);
+  }
+
+  /* ===== 視聴者リクエスト（スプレッドシート） ===== */
+
+  async function apiCall(params){
+    const url = new URL(API_URL);
+    url.searchParams.set('mode','api');
+    url.searchParams.set('key', API_PASS);
+    for(const [k,v] of Object.entries(params)) url.searchParams.set(k, String(v));
+    const res = await fetch(url.toString(), { cache:'no-store' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error||'エラー');
+    return data;
+  }
+
+  function renderSheetReqs(reqs){
+    const list = document.getElementById('sheet-req-list');
+    const badge = document.getElementById('sheet-badge');
+    const pending = reqs.filter(r=>r.status!=='対応済み').length;
+    badge.style.display = pending>0 ? 'inline' : 'none';
+    badge.textContent = pending+'件';
+    if (!reqs.length){
+      list.innerHTML = '<div class="empty">リクエストはまだありません</div>';
+      return;
+    }
+    list.innerHTML = reqs.map((r,i)=>`
+      <div class="req-card${r.status==='対応済み'?' done':''}" data-row="${r.row}">
+        <span class="req-no">${i+1}</span>
+        <div class="req-body">
+          <div class="req-main">${esc(r.title)}${r.artist?` <span style="font-size:12px;font-weight:400;color:var(--text-dim);">/ ${esc(r.artist)}</span>`:''}</div>
+          <div class="req-sub">👤 ${esc(r.requester)} &nbsp;·&nbsp; ${esc(r.at)}</div>
+        </div>
+        <div class="req-actions">
+          <button class="icon-btn check${r.status==='対応済み'?' on':''}" data-done="${r.row}" title="対応済みにする">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+          </button>
+          <button class="icon-btn del" data-del="${r.row}" title="削除">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function fetchSheetReqs(silent){
+    try{
+      const data = await apiCall({ action:'getRequests' });
+      renderSheetReqs(data.requests||[]);
+      if (!silent) showToast('更新しました','ok');
+    } catch(err){
+      document.getElementById('sheet-req-list').innerHTML=`<div class="empty">読み込みに失敗しました: ${esc(err.message)}</div>`;
+      if (!silent) showToast(err.message,'err');
+    }
+  }
+
+  document.getElementById('sheet-refresh-btn').addEventListener('click', ()=>fetchSheetReqs(false));
+
+  document.getElementById('sheet-req-list').addEventListener('click', async(e)=>{
+    const doneBtn = e.target.closest('[data-done]');
+    const delBtn  = e.target.closest('[data-del]');
+    if (doneBtn){
+      try{ await apiCall({ action:'doneRequest', row:Number(doneBtn.dataset.done) }); await fetchSheetReqs(true); }
+      catch(err){ showToast(err.message,'err'); }
+    } else if (delBtn){
+      try{ await apiCall({ action:'clearRequest', row:Number(delBtn.dataset.del) }); await fetchSheetReqs(true); }
+      catch(err){ showToast(err.message,'err'); }
+    }
+  });
+
+  document.getElementById('sheet-clear-done-btn').addEventListener('click', async()=>{
+    if (!confirm('対応済みのリクエストを全て削除しますか？')) return;
+    try{
+      const data = await apiCall({ action:'getRequests' });
+      const done = (data.requests||[]).filter(r=>r.status==='対応済み').reverse();
+      for(const r of done) await apiCall({ action:'clearRequest', row:r.row });
+      await fetchSheetReqs(true);
+      showToast(`削除しました`,'ok');
+    } catch(err){ showToast(err.message,'err'); }
+  });
+
+  document.getElementById('sheet-clear-all-btn').addEventListener('click', async()=>{
+    if (!confirm('全てのリクエストを削除しますか？この操作は取り消せません。')) return;
+    try{
+      await apiCall({ action:'clearAllRequests' });
+      renderSheetReqs([]);
+      showToast('全て削除しました','ok');
+    } catch(err){ showToast(err.message,'err'); }
+  });
+
+  // 起動時に自動取得
+  fetchSheetReqs(true);
+  setInterval(()=>fetchSheetReqs(true), 30000);
+
+  /* ===== リクエストメモ（ローカル） ===== */
+
+  let memos = [];
+
+  function loadMemos(){
+    try{ const r=localStorage.getItem(MEMO_KEY); if(r) memos=JSON.parse(r); } catch(e){}
+  }
+
+  function saveMemos(){
+    try{ localStorage.setItem(MEMO_KEY, JSON.stringify(memos)); } catch(e){}
+  }
+
+  function renderMemos(){
+    const list = document.getElementById('memo-list');
+    const badge = document.getElementById('memo-badge');
+    const pending = memos.filter(m=>!m.done).length;
+    badge.style.display = pending>0 ? 'inline' : 'none';
+    badge.textContent = pending+'件';
+    if (!memos.length){
+      list.innerHTML='<div class="empty">まだメモはありません</div>';
+      return;
+    }
+    list.innerHTML = memos.map((m,i)=>`
+      <div class="req-card${m.done?' done':''}">
+        <span class="req-no">${i+1}</span>
+        <div class="req-body">
+          <div class="req-main">${esc(m.text)}</div>
+        </div>
+        <div class="req-actions">
+          <button class="icon-btn check${m.done?' on':''}" data-memo-done="${i}" title="${m.done?'未対応に戻す':'対応済みにする'}">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+          </button>
+          <button class="icon-btn del" data-memo-del="${i}" title="削除">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>`).join('');
+  }
+
+  function addMemo(){
+    const input = document.getElementById('memo-input');
+    const text = input.value.trim();
+    if (!text) return;
+    memos.push({ text, done:false });
+    saveMemos(); renderMemos();
+    input.value = ''; input.focus();
+  }
+
+  document.getElementById('memo-add-btn').addEventListener('click', addMemo);
+  document.getElementById('memo-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addMemo(); });
+
+  document.getElementById('memo-list').addEventListener('click', e=>{
+    const doneBtn = e.target.closest('[data-memo-done]');
+    const delBtn  = e.target.closest('[data-memo-del]');
+    if (doneBtn){
+      const i = Number(doneBtn.dataset.memoDone);
+      memos[i].done = !memos[i].done;
+      saveMemos(); renderMemos();
+    } else if (delBtn){
+      const i = Number(delBtn.dataset.memoDel);
+      memos.splice(i, 1);
+      saveMemos(); renderMemos();
+    }
+  });
+
+  document.getElementById('memo-clear-done-btn').addEventListener('click', ()=>{
+    const n = memos.filter(m=>m.done).length;
+    if (!n){ showToast('対応済みのメモはありません'); return; }
+    if (!confirm(`対応済み ${n} 件を削除しますか？`)) return;
+    memos = memos.filter(m=>!m.done);
+    saveMemos(); renderMemos();
+    showToast('削除しました','ok');
+  });
+
+  loadMemos(); renderMemos();
+
+})();
+</script>
+</body>
+</html>

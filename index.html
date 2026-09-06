@@ -107,6 +107,7 @@
   .song-artist-inline{font-size:13px;color:var(--accent2-text);word-break:break-word;}
   .meta-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .badge-work{font-size:10.5px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;white-space:nowrap;}
+  .req-count-badge{font-size:10.5px;color:#e8829a;background:rgba(255,182,196,.18);border:1px solid rgba(255,182,196,.45);border-radius:999px;padding:2px 8px;white-space:nowrap;font-family:var(--font-led);}
   .notes-text{font-size:11px;color:var(--text-dim);font-style:italic;word-break:break-word;width:100%;}
 
   /* --- コピーボタン --- */
@@ -510,6 +511,7 @@
           <div class="meta-badges">
             ${song.work ? `<span class="badge-work">📀 ${esc(song.work)}</span>` : ''}
             ${song.releaseYear ? `<span class="badge-work">📅 ${esc(song.releaseYear)}</span>` : ''}
+            ${song.requestCount > 0 ? `<span class="req-count-badge">🩷 ${song.requestCount}</span>` : ''}
           </div>
         </div>
         ${song.notes ? `<div class="notes-text">💬 ${esc(song.notes)}</div>` : ''}

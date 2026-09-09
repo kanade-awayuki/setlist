@@ -299,6 +299,9 @@
         <label class="check-label" id="f-milishiri-label">
           <input type="checkbox" id="f-milishiri">ミリしり
         </label>
+        <label class="check-label" id="f-easy-label">
+          <input type="checkbox" id="f-easy">歌いやすい
+        </label>
         <button type="submit" class="btn primary" id="add-submit-btn">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           リストに追加
@@ -444,6 +447,8 @@
     fNotes:         document.getElementById('f-notes'),
     fMilishiri:     document.getElementById('f-milishiri'),
     fMilishiriLabel:document.getElementById('f-milishiri-label'),
+    fEasy:          document.getElementById('f-easy'),
+    fEasyLabel:     document.getElementById('f-easy-label'),
     search:         document.getElementById('search'),
     sortField:      document.getElementById('sort-field'),
     sortMode:       document.getElementById('sort-mode'),
@@ -578,6 +583,7 @@
             <label class="fl">作品名<input type="text" class="e-work" value="${esc(song.work)}" maxlength="80"></label>
             <label class="fl">備考<input type="text" class="e-notes" value="${esc(song.notes)}" maxlength="120"></label>
             <label class="fl" style="justify-content:flex-end;"><label class="e-check-label"><input type="checkbox" class="e-milishiri"${song.milishiri?' checked':''}> ミリしり</label></label>
+            <label class="fl" style="justify-content:flex-end;"><label class="e-check-label"><input type="checkbox" class="e-easy"${song.easyToSing?' checked':''}> 歌いやすい</label></label>
           </div>
           <div class="edit-actions">
             <button class="btn sm ghost" data-action="cancel-edit">${ICONS.close} キャンセル</button>
@@ -598,6 +604,7 @@
             ${song.work?`<span class="badge-work">📀 ${esc(song.work)}</span>`:''}
             ${song.releaseYear?`<span class="badge-work">📅 ${esc(song.releaseYear)}</span>`:''}
             ${song.milishiri?`<span class="badge-milishiri">🎵 ミリしり</span>`:''}
+            ${song.easyToSing?`<span class="badge-milishiri" style="background:rgba(134,206,140,.15);border-color:rgba(134,206,140,.4);color:#2e7d32;">🎤 歌いやすい</span>`:''}
           </div>
           ${song.notes?`<div class="notes-text">💬 ${esc(song.notes)}</div>`:''}
         </div>
@@ -665,14 +672,16 @@
     if(busy) return;
     const title = el.fTitle.value;
     if(!title.trim()){ el.fTitle.focus(); return; }
-    await runApi({ action:'addSong', song:{ title, titleKana:el.fTitleKana.value, titleAlpha:el.fTitleAlpha.value, artist:el.fArtist.value, artistKana:el.fArtistKana.value, releaseYear:el.fReleaseYear.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked } }, '追加しています…');
+    await runApi({ action:'addSong', song:{ title, titleKana:el.fTitleKana.value, titleAlpha:el.fTitleAlpha.value, artist:el.fArtist.value, artistKana:el.fArtistKana.value, releaseYear:el.fReleaseYear.value, work:el.fWork.value, notes:el.fNotes.value, milishiri:el.fMilishiri.checked, easyToSing:el.fEasy.checked } }, '追加しています…');
     showToast('追加しました','ok');
     el.addForm.reset();
     el.fArtistKana.value = '';
     el.fMilishiriLabel.classList.remove('on');
+    el.fEasyLabel.classList.remove('on');
     el.fTitle.focus();
   });
   el.fMilishiri.addEventListener('change',()=>{ el.fMilishiriLabel.classList.toggle('on', el.fMilishiri.checked); });
+  el.fEasy.addEventListener('change',()=>{ el.fEasyLabel.classList.toggle('on', el.fEasy.checked); });
 
   /* ===== イベント: ソート・検索 ===== */
   el.search.addEventListener('input', render);
@@ -721,7 +730,7 @@
     if(action==='save-edit'){
       const card = el.list.querySelector(`.song-card[data-row="${row}"]`);
       if(!card) return;
-      const data = { title:card.querySelector('.e-title').value, titleKana:card.querySelector('.e-title-kana').value, titleAlpha:card.querySelector('.e-title-alpha').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, releaseYear:card.querySelector('.e-release-year').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked };
+      const data = { title:card.querySelector('.e-title').value, titleKana:card.querySelector('.e-title-kana').value, titleAlpha:card.querySelector('.e-title-alpha').value, artist:card.querySelector('.e-artist').value, artistKana:card.querySelector('.e-artist-kana').value, releaseYear:card.querySelector('.e-release-year').value, work:card.querySelector('.e-work').value, notes:card.querySelector('.e-notes').value, milishiri:card.querySelector('.e-milishiri').checked, easyToSing:card.querySelector('.e-easy').checked };
       if(!data.title.trim()) return;
       await runApi({ action:'updateSong', row, song:data },'保存しています…');
       showToast('更新しました','ok');

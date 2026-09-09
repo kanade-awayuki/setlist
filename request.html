@@ -142,7 +142,52 @@
 
   .empty{text-align:center;padding:28px 16px;color:var(--text-faint);font-size:13px;}
 
-  #toast{
+  .btn.open{ background:rgba(111,217,176,.15); border-color:rgba(111,217,176,.5); color:var(--ok-text); font-weight:700; }
+  .btn.open:hover{ background:rgba(111,217,176,.25); }
+  .btn.closed{ background:rgba(255,122,144,.10); border-color:rgba(255,122,144,.4); color:var(--danger-text); font-weight:700; }
+  .btn.closed:hover{ background:rgba(255,122,144,.20); }
+
+  /* ログイン画面 */
+  #login-screen{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(ellipse 900px 500px at 18% -10%, rgba(255,157,183,.20), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(155,140,255,.14), transparent 55%),
+      var(--bg-0);
+    z-index:100;padding:18px;
+  }
+  .login-box{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:40px 32px;width:100%;max-width:340px;box-shadow:var(--shadow-lg);text-align:center;
+  }
+  .login-icon{
+    width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin:0 auto 18px;
+    background:radial-gradient(circle at 35% 30%, #ffd9a8, var(--accent) 55%, var(--accent-deep) 100%);
+    box-shadow:0 0 0 4px rgba(255,157,183,.16),0 0 24px rgba(255,157,183,.40);
+  }
+  .login-box h1{
+    font-family:var(--font-display);font-weight:400;font-size:20px;margin:0 0 4px;
+    background:linear-gradient(95deg,var(--accent2-text),var(--accent-text) 55%,var(--accent-deep));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .login-box p{font-size:12.5px;color:var(--text-dim);margin:0 0 22px;}
+  .login-input{
+    font-family:var(--font-body);width:100%;background:var(--bg-1);border:1px solid var(--border);
+    color:var(--text);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;
+    outline:none;margin-bottom:10px;letter-spacing:.1em;text-align:center;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .login-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,157,183,.22);}
+  .login-input::placeholder{letter-spacing:normal;color:var(--text-faint);}
+  .login-btn{
+    display:block;width:100%;padding:12px;border-radius:var(--radius-md);
+    background:linear-gradient(95deg,var(--accent),var(--accent-deep));color:var(--text);
+    border:none;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;
+  }
+  .login-btn:hover{filter:brightness(1.06);}
+  .login-btn:disabled{opacity:.5;cursor:not-allowed;filter:none;}
+  .login-err{font-size:12.5px;color:var(--danger-text);min-height:18px;}
     position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
     background:var(--surface);border:1px solid var(--border);color:var(--text);
     padding:10px 16px;border-radius:999px;font-size:12.5px;box-shadow:var(--shadow-lg);
@@ -154,6 +199,21 @@
 </style>
 </head>
 <body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-icon">📬</div>
+    <h1>リクエスト管理</h1>
+    <p>パスワードを入力してください</p>
+    <input type="password" class="login-input" id="login-pw" placeholder="パスワード" autocomplete="current-password">
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" id="login-btn">ログイン</button>
+  </div>
+</div>
+
+<!-- メインコンテンツ -->
+<div id="main-wrap" style="display:none;">
 <div class="wrap">
 
   <header>
@@ -180,6 +240,7 @@
       視聴者リクエスト
       <span class="badge" id="sheet-badge" style="display:none;"></span>
       <div class="panel-head-actions">
+        <button class="btn" id="req-status-btn" disabled>確認中…</button>
         <button class="btn" id="sheet-refresh-btn">
           <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
           更新
@@ -215,7 +276,8 @@
     </div>
   </section>
 
-</div>
+</div><!-- /wrap -->
+</div><!-- /main-wrap -->
 <div id="toast"></div>
 
 <script>
@@ -226,9 +288,66 @@
   const API_URL  = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
   const API_PASS = 'aG42iZzR';
   // ==============================================
-  const MEMO_KEY = 'utawaku_requests';
+
+  const MEMO_KEY    = 'utawaku_requests';
+  const SESSION_KEY = 'utawaku_req_pw';
 
   function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  /* ===== ログイン ===== */
+  async function login(){
+    const pw = document.getElementById('login-pw').value;
+    if (!pw){ document.getElementById('login-err').textContent='パスワードを入力してください'; return; }
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    document.getElementById('login-err').textContent = '確認中…';
+    try{
+      const url = new URL(API_URL);
+      url.searchParams.set('mode','api');
+      url.searchParams.set('key', pw);
+      url.searchParams.set('action','verifyPassword');
+      const res = await fetch(url.toString(), { cache:'no-store' });
+      const data = await res.json();
+      if (!data.ok) throw new Error('パスワードが違います');
+      // パスワードをセッションに保存してAPI_PASSを上書き
+      sessionStorage.setItem(SESSION_KEY, pw);
+      showMain();
+    } catch(err){
+      document.getElementById('login-err').textContent = err.message || 'パスワードが違います';
+      btn.disabled = false;
+    }
+  }
+
+  function showMain(){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-wrap').style.display = 'block';
+    init();
+  }
+
+  document.getElementById('login-btn').addEventListener('click', login);
+  document.getElementById('login-pw').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+
+  // セッション復元
+  const savedPw = sessionStorage.getItem(SESSION_KEY);
+  if (savedPw){
+    // 保存済みパスワードで自動ログイン試行
+    (async()=>{
+      try{
+        const url = new URL(API_URL);
+        url.searchParams.set('mode','api');
+        url.searchParams.set('key', savedPw);
+        url.searchParams.set('action','verifyPassword');
+        const res = await fetch(url.toString(), { cache:'no-store' });
+        const data = await res.json();
+        if (data.ok){ showMain(); return; }
+      } catch(e){}
+      sessionStorage.removeItem(SESSION_KEY);
+    })();
+  }
+
+  function getPass(){ return sessionStorage.getItem(SESSION_KEY) || API_PASS; }
+
+  function init(){
 
   function showToast(msg, type){
     const t = document.getElementById('toast');
@@ -280,12 +399,56 @@
 
   fetchStatus();
 
+  /* ===== リクエスト受付状態 ===== */
+
+  let requestOpen = null; // null=未取得, true=受付中, false=停止中
+
+  async function fetchRequestStatus(){
+    try{
+      const url = new URL(API_URL);
+      url.searchParams.set('mode','api');
+      url.searchParams.set('action','getRequestStatus');
+      const res = await fetch(url.toString(), { cache:'no-store' });
+      const data = await res.json();
+      if (data.ok) setStatusUI(data.open);
+    } catch(e){}
+  }
+
+  function setStatusUI(open){
+    requestOpen = open;
+    const btn = document.getElementById('req-status-btn');
+    btn.disabled = false;
+    if (open){
+      btn.textContent = '🔓 受付中（クリックで停止）';
+      btn.className = 'btn open';
+    } else {
+      btn.textContent = '🔒 受付停止中（クリックで開始）';
+      btn.className = 'btn closed';
+    }
+  }
+
+  document.getElementById('req-status-btn').addEventListener('click', async()=>{
+    const btn = document.getElementById('req-status-btn');
+    btn.disabled = true;
+    const newOpen = !requestOpen;
+    try{
+      await apiCall({ action:'setRequestStatus', open: newOpen ? 'true' : 'false' });
+      setStatusUI(newOpen);
+      showToast(newOpen ? '🔓 リクエスト受付を開始しました' : '🔒 リクエスト受付を停止しました', 'ok');
+    } catch(err){
+      btn.disabled = false;
+      showToast(err.message, 'err');
+    }
+  });
+
+  fetchRequestStatus();
+
   /* ===== 視聴者リクエスト（スプレッドシート） ===== */
 
   async function apiCall(params){
     const url = new URL(API_URL);
     url.searchParams.set('mode','api');
-    url.searchParams.set('key', API_PASS);
+    url.searchParams.set('key', getPass());
     for(const [k,v] of Object.entries(params)) url.searchParams.set(k, String(v));
     const res = await fetch(url.toString(), { cache:'no-store' });
     const data = await res.json();
@@ -445,6 +608,8 @@
   });
 
   loadMemos(); renderMemos();
+
+  } // init() end
 
 })();
 </script>

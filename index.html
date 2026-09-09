@@ -342,7 +342,6 @@
   const ICON_IMAGE_URL = 'https://raw.githubusercontent.com/kanade-awayuki/setlist/refs/heads/main/kanade_icon.png';     // ← 画像URL（絵文字使用時は '' のまま）
   // ============================================
 
-
   // アイコンを描画
   const siteIcon = document.getElementById('site-icon');
   if (ICON_IMAGE_URL) {
@@ -360,6 +359,7 @@
   };
 
   let songs = [], reverse = false, selectedIdx = '', idxTarget = 'title';
+  let requestOpen = true; // リクエスト受付状態
 
   const el = {
     list: document.getElementById('list'),
@@ -519,9 +519,10 @@
         </div>
         ${song.notes ? `<div class="notes-text">💬 ${esc(song.notes)}</div>` : ''}
         <div style="margin-top:8px;">
-          <button class="req-btn${isRequested?' requested':''}" data-req-title="${esc(song.title)}" data-req-artist="${esc(song.artist||'')}" ${isRequested?'disabled':''}>
-            ${isRequested ? '✓ リクエスト済み' : '💜 リクエスト'}
-          </button>
+          ${requestOpen
+            ? `<button class="req-btn${isRequested?' requested':''}" data-req-title="${esc(song.title)}" data-req-artist="${esc(song.artist||'')}" ${isRequested?'disabled':''}>${isRequested ? '✓ リクエスト済み' : '💜 リクエスト'}</button>`
+            : `<span style="font-size:11px;color:var(--text-faint);padding:4px 0;display:inline-block;">🔒 受付停止中</span>`
+          }
         </div>
       </div>
     </div>`;
@@ -542,10 +543,15 @@
 
   async function fetchSongs(silent){
     try{
-      const res = await fetch(APPS_SCRIPT_URL + '?mode=json', { cache: 'no-store' });
+      const [res, statusRes] = await Promise.all([
+        fetch(APPS_SCRIPT_URL + '?mode=json', { cache: 'no-store' }),
+        fetch(APPS_SCRIPT_URL + '?mode=api&action=getRequestStatus', { cache: 'no-store' })
+      ]);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
+      const statusData = await statusRes.json();
       songs = data.songs || [];
+      if (statusData.ok) requestOpen = statusData.open;
       el.updatedAt.textContent = data.updatedAt || new Date().toLocaleString('ja-JP');
       el.errorMsg.style.display = 'none';
       render();
@@ -607,6 +613,17 @@
     render();
   });
   el.refreshBtn.addEventListener('click', () => fetchSongs(false));
+
+  async function fetchRequestStatus(){
+    try{
+      const url = new URL(APPS_SCRIPT_URL);
+      url.searchParams.set('mode','api');
+      url.searchParams.set('action','getRequestStatus');
+      const res = await fetch(url.toString(), { cache:'no-store' });
+      const data = await res.json();
+      if (data.ok && requestOpen !== data.open){ requestOpen = data.open; render(); }
+    } catch(e){}
+  }
   setInterval(() => fetchSongs(true), 60000);
 
   /* ===== リクエストモーダル ===== */
@@ -677,6 +694,8 @@
   modal.name.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitRequest(); });
 
   fetchSongs(true);
+  fetchRequestStatus();
+  setInterval(() => fetchRequestStatus(), 30000);
 })();
 </script>
 </body>

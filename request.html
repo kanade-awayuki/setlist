@@ -70,6 +70,26 @@
   .panel-head .badge.ok{color:var(--ok-text);background:rgba(111,217,176,.12);border-color:rgba(111,217,176,.3);}
   .panel-head-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
 
+  /* 受付トグル */
+  .req-status-panel{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:14px 18px;margin-bottom:20px;box-shadow:var(--shadow-sm);
+  }
+  .req-status-label{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .status-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .status-dot.open{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+  .status-dot.closed{background:var(--text-faint);}
+  .toggle-btn{
+    margin-left:auto;display:inline-flex;align-items:center;gap:7px;
+    border-radius:999px;padding:10px 20px;font-size:14px;font-weight:700;font-family:var(--font-body);
+    border:none;cursor:pointer;transition:filter .15s;
+  }
+  .toggle-btn.open{background:linear-gradient(95deg,var(--danger),#e53565);color:#fff;}
+  .toggle-btn.closed{background:linear-gradient(95deg,var(--ok),#34c98a);color:#fff;}
+  .toggle-btn:hover{filter:brightness(1.07);}
+  .toggle-btn:disabled{opacity:.5;cursor:not-allowed;filter:none;}
+
   button{font-family:var(--font-body);cursor:pointer;}
   .btn{
     display:inline-flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--border);
@@ -144,6 +164,15 @@
     </div>
   </header>
 
+  <!-- リクエスト受付状態 -->
+  <div class="req-status-panel">
+    <span class="req-status-label">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">確認中…</span>
+    </span>
+    <button class="toggle-btn" id="toggle-btn" disabled>…</button>
+  </div>
+
   <!-- 視聴者リクエスト（スプレッドシート） -->
   <section class="panel">
     <div class="panel-head">
@@ -196,8 +225,7 @@
   // ▼▼▼ Apps ScriptのデプロイURLとパスワードを設定してください ▼▼▼
   const API_URL  = 'https://script.google.com/macros/s/AKfycbx8_itzFKS4ylGen_GqxSLi3LXxhFiW0Uhl_7NkQ3xNeDY4uf-QEbETVNqc44gEzaNU/exec';
   const API_PASS = 'aG42iZzR';
-  // ============================================================
-
+  // ==============================================
   const MEMO_KEY = 'utawaku_requests';
 
   function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -208,6 +236,49 @@
     clearTimeout(showToast._t);
     showToast._t = setTimeout(()=>{ t.className=''; }, 2200);
   }
+
+  /* ===== 受付状態管理 ===== */
+
+  let currentOpen = null;
+
+  function renderStatus(open){
+    currentOpen = open;
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const btn  = document.getElementById('toggle-btn');
+    dot.className  = 'status-dot ' + (open ? 'open' : 'closed');
+    text.textContent = open ? 'リクエスト受付中' : 'リクエスト受付停止中';
+    btn.textContent = open ? '🔒 受付を停止する' : '🔓 受付を開始する';
+    btn.className  = 'toggle-btn ' + (open ? 'open' : 'closed');
+    btn.disabled   = false;
+  }
+
+  async function fetchStatus(){
+    try{
+      const url = new URL(API_URL);
+      url.searchParams.set('mode','api');
+      url.searchParams.set('action','getRequestStatus');
+      const res = await fetch(url.toString(), { cache:'no-store' });
+      const data = await res.json();
+      if (data.ok) renderStatus(data.open);
+    } catch(e){}
+  }
+
+  document.getElementById('toggle-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('toggle-btn');
+    btn.disabled = true;
+    try{
+      const newOpen = !currentOpen;
+      const data = await apiCall({ action:'setRequestStatus', open: newOpen });
+      renderStatus(data.open);
+      showToast(data.open ? '✅ リクエスト受付を開始しました' : '🔒 リクエスト受付を停止しました', 'ok');
+    } catch(err){
+      showToast(err.message, 'err');
+      btn.disabled = false;
+    }
+  });
+
+  fetchStatus();
 
   /* ===== 視聴者リクエスト（スプレッドシート） ===== */
 

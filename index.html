@@ -342,6 +342,7 @@
   const ICON_IMAGE_URL = 'https://raw.githubusercontent.com/kanade-awayuki/setlist/refs/heads/main/kanade_icon.png';     // ← 画像URL（絵文字使用時は '' のまま）
   // ============================================
 
+
   // アイコンを描画
   const siteIcon = document.getElementById('site-icon');
   if (ICON_IMAGE_URL) {
@@ -511,6 +512,8 @@
           <div class="meta-badges">
             ${song.work ? `<span class="badge-work">📀 ${esc(song.work)}</span>` : ''}
             ${song.releaseYear ? `<span class="badge-work">📅 ${esc(song.releaseYear)}</span>` : ''}
+            ${song.milishiri ? `<span class="milishiri-tag">（ミリしり）</span>` : ''}
+            ${song.easyToSing ? `<span style="font-size:10.5px;color:#2e7d32;background:rgba(134,206,140,.15);border:1px solid rgba(134,206,140,.4);border-radius:999px;padding:2px 8px;white-space:nowrap;">🎤 歌いやすい</span>` : ''}
             ${song.requestCount > 0 ? `<span class="req-count-badge">🩷 ${song.requestCount}</span>` : ''}
           </div>
         </div>

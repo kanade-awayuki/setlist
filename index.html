@@ -635,7 +635,7 @@
       if (data.ok && requestOpen !== data.open){ requestOpen = data.open; render(); }
     } catch(e){}
   }
-  setInterval(() => fetchSongs(true), 60000);
+  setInterval(() => fetchSongs(true), 1800000);
 
   /* ===== リクエストモーダル ===== */
   let pendingReq = null; // { title, artist }
@@ -706,7 +706,7 @@
 
   fetchSongs(true);
   fetchRequestStatus();
-  setInterval(() => fetchRequestStatus(), 30000);
+  setInterval(() => fetchRequestStatus(), 1800000);
 })();
 </script>
 </body>

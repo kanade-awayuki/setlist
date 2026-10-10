@@ -144,6 +144,16 @@
   .copy-btns{display:flex;gap:3px;align-items:center;margin-top:4px;}
   .copy-label{font-size:9.5px;color:var(--text-faint);letter-spacing:.02em;}
 
+  /* 集計 */
+  .summary-card{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:var(--card);border:1px solid var(--border);margin-bottom:6px;}
+  .summary-rank{font-family:var(--font-led);font-size:11px;color:var(--accent2-text);flex:0 0 20px;}
+  .summary-body{flex:1 1 auto;min-width:0;}
+  .summary-title{font-size:13px;font-weight:600;word-break:break-word;}
+  .summary-artist{font-size:11px;color:var(--text-dim);margin-top:1px;}
+  .summary-requesters{font-size:11px;color:var(--text-faint);margin-top:3px;word-break:break-word;}
+  .summary-count{flex:0 0 auto;font-family:var(--font-led);font-size:18px;color:var(--accent-text);text-align:right;}
+  .summary-count span{font-size:10px;color:var(--text-faint);display:block;text-align:right;}
+
   .empty{text-align:center;padding:28px 16px;color:var(--text-faint);font-size:13px;}
 
   .btn.open{ background:rgba(111,217,176,.15); border-color:rgba(111,217,176,.5); color:var(--ok-text); font-weight:700; }
@@ -256,6 +266,18 @@
     <div class="req-list" id="sheet-req-list">
       <div class="empty">「更新」を押してリクエストを読み込んでください</div>
     </div>
+  </section>
+
+  <!-- 集計 -->
+  <section class="panel">
+    <div class="panel-head">
+      <span class="icon">📊</span>
+      リクエスト集計
+      <div class="panel-actions">
+        <button class="btn" id="summary-refresh-btn">⟳ 更新</button>
+      </div>
+    </div>
+    <div id="summary-list"><div class="empty">集計データがありません</div></div>
   </section>
 
   <!-- リクエストメモ（ローカル） -->
@@ -556,6 +578,38 @@
   // 起動時に自動取得
   fetchSheetReqs(true);
   setInterval(()=>fetchSheetReqs(true), 240000);
+
+  /* ===== 集計 ===== */
+
+  function renderSummary(list){
+    const el = document.getElementById('summary-list');
+    if (!list.length){
+      el.innerHTML = '<div class="empty">集計データがありません<br><small style="color:var(--text-faint)">リクエストが送られると自動で集計されます</small></div>';
+      return;
+    }
+    el.innerHTML = list.map((s,i)=>`
+      <div class="summary-card">
+        <span class="summary-rank">${i+1}</span>
+        <div class="summary-body">
+          <div class="summary-title">${esc(s.title)}</div>
+          ${s.artist?`<div class="summary-artist">${esc(s.artist)}</div>`:''}
+          <div class="summary-requesters">👤 ${esc(s.requesters)||'—'}</div>
+        </div>
+        <div class="summary-count">${s.count}<span>回</span></div>
+      </div>`).join('');
+  }
+
+  async function fetchSummary(silent){
+    try{
+      const data = await apiCall({ action:'getSummary' });
+      renderSummary(data.summary || []);
+    } catch(err){
+      if (!silent) showToast('集計の取得に失敗しました','err');
+    }
+  }
+
+  document.getElementById('summary-refresh-btn').addEventListener('click', ()=>fetchSummary(false));
+  fetchSummary(true);
 
   /* ===== リクエストメモ（ローカル） ===== */
 

@@ -253,6 +253,9 @@
       <button type="button" id="easy-filter-btn" class="reverse-toggle" aria-pressed="false">
         🎤 歌いやすい
       </button>
+      <button type="button" id="kajifuru-filter-btn" class="reverse-toggle" aria-pressed="false">
+        🎻 梶浦由記
+      </button>
       <button type="button" id="reverse-btn" class="reverse-toggle" aria-pressed="false">
         <svg class="icon" viewBox="0 0 24 24"><path d="M7 16V4M7 4 3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
         逆順
@@ -361,7 +364,7 @@
     copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
   };
 
-  let songs = [], reverse = false, selectedIdx = '', idxTarget = 'title', easyFilter = false;
+  let songs = [], reverse = false, selectedIdx = '', idxTarget = 'title', easyFilter = false, kajifuruFilter = false;
   let requestOpen = true; // リクエスト受付状態
 
   const el = {
@@ -370,7 +373,8 @@
     sortField: document.getElementById('sort-field'),
     sortMode: document.getElementById('sort-mode'),
     reverseBtn: document.getElementById('reverse-btn'),
-    easyFilterBtn: document.getElementById('easy-filter-btn'),
+    easyFilterBtn:    document.getElementById('easy-filter-btn'),
+    kajifuruFilterBtn: document.getElementById('kajifuru-filter-btn'),
     refreshBtn: document.getElementById('refresh-btn'),
     updatedAt: document.getElementById('updated-at'),
     errorMsg: document.getElementById('error-msg'),
@@ -486,6 +490,7 @@
     if (q) list = list.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q) || (s.work||'').toLowerCase().includes(q) || (s.notes||'').toLowerCase().includes(q));
     if (selectedIdx) list = list.filter(matchesIndex);
     if (easyFilter) list = list.filter(s => s.easyToSing);
+    if (kajifuruFilter) list = list.filter(s => s.kajifuru);
     const field = el.sortField.value, mode = el.sortMode.value;
     if (mode !== 'none') list.sort((a,b) => compareSongs(a,b,field,mode));
     if (reverse) list.reverse();
@@ -593,6 +598,12 @@
   el.easyFilterBtn.addEventListener('click', () => {
     easyFilter = !easyFilter;
     el.easyFilterBtn.setAttribute('aria-pressed', String(easyFilter));
+    render();
+  });
+
+  el.kajifuruFilterBtn.addEventListener('click', () => {
+    kajifuruFilter = !kajifuruFilter;
+    el.kajifuruFilterBtn.setAttribute('aria-pressed', String(kajifuruFilter));
     render();
   });
 
